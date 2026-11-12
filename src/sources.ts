@@ -101,14 +101,20 @@ class ByteSource {
   private async read(offset: number, length: number, head = false): Promise<Uint8Array> {
     if (isUrl(this.source)) {
       const data = await httpGet(this.source, [offset, length]);
-      if (!data) throw new TileSourceError(`HTTP 404 reading ${head ? "" : `bytes ${offset}+${length} of `}${this.source}`);
+      if (!data)
+        throw new TileSourceError(`HTTP 404 reading ${head ? "" : `bytes ${offset}+${length} of `}${this.source}`);
       return data;
     }
     const bun = (globalThis as { Bun?: { file(p: string): Blob } }).Bun;
     if (!bun) throw new TileSourceError(`local files need the Bun runtime; use an http(s) URL for ${this.source}`);
     const path = this.source.startsWith("~/") ? `${process.env.HOME}${this.source.slice(1)}` : this.source;
     try {
-      return new Uint8Array(await bun.file(path).slice(offset, offset + length).arrayBuffer());
+      return new Uint8Array(
+        await bun
+          .file(path)
+          .slice(offset, offset + length)
+          .arrayBuffer(),
+      );
     } catch (err) {
       throw new TileSourceError(`cannot open ${this.source}: ${(err as Error).message}`);
     }
@@ -351,7 +357,11 @@ export class PMTilesSource implements TileSource {
       return d;
     }
     d = (async () => {
-      const raw = await partDecompress(await this.bytes.get(offset, length), this.header.internalCompression, "directory");
+      const raw = await partDecompress(
+        await this.bytes.get(offset, length),
+        this.header.internalCompression,
+        "directory",
+      );
       return parseDirectory(raw);
     })();
     d.catch(() => this.dirs.delete(key));
@@ -430,13 +440,21 @@ export class PMTilesSource implements TileSource {
     return found;
   }
 
-  private async walk(offset: number, length: number, lo: number, hi: number, found: TileKey[], limit: number): Promise<void> {
+  private async walk(
+    offset: number,
+    length: number,
+    lo: number,
+    hi: number,
+    found: TileKey[],
+    limit: number,
+  ): Promise<void> {
     const entries = await this.directory(offset, length);
     for (let i = 0; i < entries.length; i++) {
       const e = entries[i]!;
       const next = i + 1 < entries.length ? entries[i + 1]!.tileId : Number.MAX_SAFE_INTEGER;
       if (e.runLength === 0) {
-        if (next > lo && e.tileId < hi) await this.walk(this.header.leafOffset + e.offset, e.length, lo, hi, found, limit);
+        if (next > lo && e.tileId < hi)
+          await this.walk(this.header.leafOffset + e.offset, e.length, lo, hi, found, limit);
       } else {
         for (let t = Math.max(e.tileId, lo); t < Math.min(e.tileId + e.runLength, hi); t++) found.push(tileIdToZxy(t));
       }
@@ -508,7 +526,8 @@ export async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) =>
 export class XYZSource implements TileSource {
   constructor(readonly template: string) {
     for (const part of ["{z}", "{x}", "{y}"]) {
-      if (!template.includes(part)) throw new TileSourceError(`tile URL template must contain {z}, {x} and {y}: ${template}`);
+      if (!template.includes(part))
+        throw new TileSourceError(`tile URL template must contain {z}, {x} and {y}: ${template}`);
     }
     if (!isUrl(template)) throw new TileSourceError(`XYZ templates must be http(s) URLs: ${template}`);
   }

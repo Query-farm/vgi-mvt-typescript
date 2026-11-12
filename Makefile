@@ -58,7 +58,7 @@ run-http: build ## Serve over HTTP on port 8000
 	$(WORKER) --http --host 127.0.0.1 --port 8000
 
 debug: build tools ## Run one query against the worker with debug logging on stderr
-	@printf "LOAD vgi;\nATTACH 'mvt' (TYPE vgi, LOCATION '$(WORKER) --debug');\nSELECT mvt.main.greet('debug');\n" \
+	@printf "LOAD vgi;\nATTACH 'mvt' (TYPE vgi, LOCATION '$(WORKER) --debug');\nSELECT count(*) FROM mvt.main.read_mvt('test/fixtures/0-0-0.mvt', 0, 0, 0);\n" \
 	  | uvx --from haybarn-cli==$(HAYBARN_VERSION) haybarn -no-agent
 
 template-diff: ## Show upstream template changes since this project was created

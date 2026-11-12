@@ -299,7 +299,8 @@ export function decodeGeometry(commands: number[]): Part[] {
       }
     } else if (cid === 7) {
       const m = current.length;
-      if (m >= 2 && (current[0] !== current[m - 2] || current[1] !== current[m - 1])) current.push(current[0]!, current[1]!);
+      if (m >= 2 && (current[0] !== current[m - 2] || current[1] !== current[m - 1]))
+        current.push(current[0]!, current[1]!);
     } else {
       throw new MvtDecodeError(`unknown geometry command ${cid}`);
     }
@@ -484,7 +485,14 @@ class WkbWriter {
   }
 }
 
-export type GeometryType = "POINT" | "MULTIPOINT" | "LINESTRING" | "MULTILINESTRING" | "POLYGON" | "MULTIPOLYGON" | "UNKNOWN";
+export type GeometryType =
+  | "POINT"
+  | "MULTIPOINT"
+  | "LINESTRING"
+  | "MULTILINESTRING"
+  | "POLYGON"
+  | "MULTIPOLYGON"
+  | "UNKNOWN";
 
 function writePolygon(w: WkbWriter, rings: Part[], p: Projector): void {
   w.header(3);

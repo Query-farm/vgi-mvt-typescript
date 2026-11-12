@@ -118,8 +118,8 @@ export const AGENT_TEST_TASKS = [
       "test/fixtures/sample.pmtiles at zoom 3?",
   },
   {
-    name: "fixture_maxzoom",
-    prompt: "What is the maximum zoom level of the tileset test/fixtures/sample.pmtiles?",
+    name: "tile_polygons",
+    prompt: "How many polygon features does the single vector tile test/fixtures/0-0-0.mvt (tile 0/0/0) hold?",
   },
   {
     name: "region_attributes",
@@ -128,8 +128,9 @@ export const AGENT_TEST_TASKS = [
 ];
 
 export const CATALOG_TAGS: Record<string, string> = {
-  "vgi.title": "Mapbox Vector Tile Reader (TypeScript)",
-  "vgi.subtitle": "Decode PMTiles and XYZ vector tiles into DuckDB rows with GEOMETRY columns, natively or in the browser.",
+  "vgi.title": "Vector Tile Reader",
+  "vgi.subtitle":
+    "Decode PMTiles and XYZ vector tiles into DuckDB rows with GEOMETRY columns, natively or in the browser.",
   "vgi.doc_llm": CATALOG_DOC_LLM,
   "vgi.doc_md": CATALOG_DOC_MD,
   "vgi.source_url": SOURCE_URL,

@@ -93,7 +93,10 @@ export function clipLine(line: Part, e: number): Part[] {
 export function clipRing(ring: Part, e: number): Part | null {
   // Work on the open ring (drop the closing point), close again at the end.
   let pts = ring.slice(0, ring.length - 2);
-  const edges: [(x: number, y: number) => boolean, (ax: number, ay: number, bx: number, by: number) => [number, number]][] = [
+  const edges: [
+    (x: number, y: number) => boolean,
+    (ax: number, ay: number, bx: number, by: number) => [number, number],
+  ][] = [
     [(x) => x >= 0, (ax, ay, bx, by) => [0, snap(ay + ((by - ay) * (0 - ax)) / (bx - ax), e)]],
     [(x) => x <= e, (ax, ay, bx, by) => [e, snap(ay + ((by - ay) * (e - ax)) / (bx - ax), e)]],
     [(_x, y) => y >= 0, (ax, ay, bx, by) => [snap(ax + ((bx - ax) * (0 - ay)) / (by - ay), e), 0]],
@@ -160,7 +163,8 @@ export function clipParts(gtype: number, parts: Part[], e: number): Part[] {
     const out: Part[] = [];
     for (const ring of parts) {
       const m = ring.length;
-      const closed = m >= 2 && (ring[0] !== ring[m - 2] || ring[1] !== ring[m - 1]) ? [...ring, ring[0]!, ring[1]!] : ring;
+      const closed =
+        m >= 2 && (ring[0] !== ring[m - 2] || ring[1] !== ring[m - 1]) ? [...ring, ring[0]!, ring[1]!] : ring;
       if (closed.length < 8) continue;
       if (insideTile(closed, e)) {
         out.push(closed);

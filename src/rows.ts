@@ -21,7 +21,15 @@ import {
 } from "@query-farm/vgi/worker-cf";
 import { clipParts, type TileEdges } from "./edges.ts";
 import { column } from "./meta.ts";
-import { type Coordinates, decodeGeometry, decodeTile, type Layer, Projector, partsWkb, type PropertyValue } from "./mvt.ts";
+import {
+  type Coordinates,
+  decodeGeometry,
+  decodeTile,
+  type Layer,
+  Projector,
+  type PropertyValue,
+  partsWkb,
+} from "./mvt.ts";
 
 const CRS: Record<Coordinates, string | null> = { wgs84: "OGC:CRS84", web_mercator: "EPSG:3857", tile: null };
 
@@ -105,9 +113,15 @@ export function inferFieldTypes(layers: Layer[]): Record<string, string> {
       for (const [k, v] of f.properties) {
         if (v === null) continue;
         const kind =
-          typeof v === "boolean" ? "Boolean" : typeof v === "bigint" ? "Integer" : typeof v === "number" ? "Number" : "String";
-        let s = seen.get(k);
-        if (!s) seen.set(k, (s = new Set()));
+          typeof v === "boolean"
+            ? "Boolean"
+            : typeof v === "bigint"
+              ? "Integer"
+              : typeof v === "number"
+                ? "Number"
+                : "String";
+        const s = seen.get(k) ?? new Set<string>();
+        seen.set(k, s);
         s.add(kind);
       }
     }
@@ -181,7 +195,9 @@ export class RowBuilder {
     readonly layer: string | null,
     readonly edges: TileEdges,
   ) {
-    this.extra = outSchema.fields.filter((f) => !BASE_NAMES.has(f.name)).map((f) => ({ name: f.name, kind: typeName(f) }));
+    this.extra = outSchema.fields
+      .filter((f) => !BASE_NAMES.has(f.name))
+      .map((f) => ({ name: f.name, kind: typeName(f) }));
     this.reset();
   }
 

@@ -101,7 +101,8 @@ export const readTiles = defineTableFunction<ReadTilesArgs, ReadTilesState>({
     north: "North edge of the area to read, degrees latitude.",
     coordinates: COORDS_DOC,
     tile_edges: EDGES_DOC,
-    max_tiles: "Refuse to read more tiles than this (default 10000), so a missing bbox can't start a planet-sized read.",
+    max_tiles:
+      "Refuse to read more tiles than this (default 10000), so a missing bbox can't start a planet-sized read.",
   },
   argConstraints: {
     zoom: { ge: 0, le: 26 },
@@ -147,7 +148,12 @@ export const readTiles = defineTableFunction<ReadTilesArgs, ReadTilesState>({
       chunk.push([state.keys[i * 3]!, state.keys[i * 3 + 1]!, state.keys[i * 3 + 2]!]);
     }
     state.next += chunk.length;
-    const rows = new RowBuilder(params.outputSchema, a.coordinates as Coordinates, a.layer ?? null, a.tile_edges as TileEdges);
+    const rows = new RowBuilder(
+      params.outputSchema,
+      a.coordinates as Coordinates,
+      a.layer ?? null,
+      a.tile_edges as TileEdges,
+    );
     for (const [[z, x, y], data] of await src.fetch(chunk)) {
       await inTile(z, x, y, () => rows.addTile(z, x, y, data));
     }
@@ -242,7 +248,8 @@ export const readMvt = defineTableFunction<ReadMvtArgs, { done: boolean }>({
   argConstraints: { z: { ge: 0, le: 30 }, x: { ge: 0 }, y: { ge: 0 }, coordinates: { choices: COORDINATE_CHOICES } },
   onBind: async ({ args }) => {
     const { z, x, y } = args;
-    if (x >= 2 ** z || y >= 2 ** z) throw new TileSourceError(`tile ${z}/${x}/${y} does not exist: x and y must be below 2^z`);
+    if (x >= 2 ** z || y >= 2 ** z)
+      throw new TileSourceError(`tile ${z}/${x}/${y} does not exist: x and y must be below 2^z`);
     const coordinates = args.coordinates as Coordinates;
     if (args.layer === null || args.layer === undefined) return { outputSchema: outputSchema(coordinates) };
     // A single tile has no metadata: infer the attribute types from the tile itself.
@@ -355,8 +362,7 @@ export const tilesetLayers = defineTableFunction<{ source: string }, { done: boo
         "Number, Boolean), plus each layer's zoom range and description. Use it before read_tiles " +
         "to learn layer names and which typed columns `layer := '<name>'` will add.",
       docMd:
-        "## tileset_layers(source)\n\n" +
-        "One row per layer attribute, from the tileset's `vector_layers` metadata.",
+        "## tileset_layers(source)\n\n" + "One row per layer attribute, from the tileset's `vector_layers` metadata.",
     }),
     "vgi.result_columns_schema": JSON.stringify([
       { name: "layer", type: "VARCHAR", description: "Layer name." },

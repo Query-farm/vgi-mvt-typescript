@@ -2,15 +2,14 @@
 # `vgi-lint lint --ai` runs an agent on each prompt and grades it with check_sql.
 # See https://github.com/Query-farm/vgi-lint-check (VGI920).
 tasks:
-  - name: formal_greeting
-    reference_sql: SELECT mvt.main.greet('Grace', 'formal') AS greeting
-  - name: sum_of_squares
-    reference_sql: SELECT sum(squared) AS total FROM mvt.main.sequence_table(10)
-  - name: stepped_sequence
-    reference_sql: SELECT n FROM mvt.main.sequence_table(4, step := 5) ORDER BY n
-  # Reads the public demo API (https://vgi-starter-api.query-farm.services/v1).
-  - name: items_per_category
-    check_sql: >-
-      SELECT count(*) = 3 AND sum(items) = 25
-      FROM (SELECT category, count(*) AS items
-            FROM mvt.main.fetch_items('https://vgi-starter-api.query-farm.services/v1') GROUP BY category)
+  - name: fixture_city_count
+    reference_sql: >-
+      SELECT count(*) AS features
+      FROM mvt.main.read_tiles('test/fixtures/sample.pmtiles', zoom := 3, layer := 'cities')
+  - name: tile_polygons
+    reference_sql: >-
+      SELECT count(*) AS polygons FROM mvt.main.read_mvt('test/fixtures/0-0-0.mvt', 0, 0, 0)
+      WHERE geometry_type IN ('POLYGON', 'MULTIPOLYGON')
+  - name: region_attributes
+    reference_sql: >-
+      SELECT field FROM mvt.main.tileset_layers('test/fixtures/sample.pmtiles') WHERE layer = 'regions' ORDER BY field
