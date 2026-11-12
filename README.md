@@ -57,8 +57,8 @@ bun run demo        # builds dist/browser and serves http://localhost:8800 with 
 
 The page boots Haybarn's threads build, attaches the worker over `worker:`, and offers example
 queries, including a join between the Florence basemap and the 4.66 GB Overture places
-archive. Status: works in Chromium. WebKit fails while opening Haybarn's threads engine (before
-the worker starts), so Safari doesn't run it yet.
+archive. Status: works in Chrome and Safari. (Playwright's headless WebKit fails while opening
+Haybarn's threads engine, before the worker starts; real Safari is fine, so test there.)
 
 ## Development
 
