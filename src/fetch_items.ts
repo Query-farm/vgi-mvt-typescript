@@ -9,8 +9,8 @@
  * - **Politeness.** Requests time out, and 429/5xx responses are retried with
  *   backoff that honours `Retry-After`.
  * - **Credentials.** A bearer token comes from a DuckDB secret if one exists
- *   (`CREATE SECRET (TYPE starter_api, TOKEN '...')`), otherwise from the
- *   `STARTER_API_TOKEN` environment variable. The token is read from the
+ *   (`CREATE SECRET (TYPE mvt_api, TOKEN '...')`), otherwise from the
+ *   `MVT_API_TOKEN` environment variable. The token is read from the
  *   secret on every call and never stored in state, because state can travel
  *   back to DuckDB over HTTP.
  *
@@ -32,13 +32,13 @@ import {
 import { log } from "./log.ts";
 import { column, objectTags, VERSION } from "./meta.ts";
 
-export const SECRET_TYPE = "starter_api";
-export const TOKEN_ENV_VAR = "STARTER_API_TOKEN";
+export const SECRET_TYPE = "mvt_api";
+export const TOKEN_ENV_VAR = "MVT_API_TOKEN";
 export const TIMEOUT_MS = 30_000;
 export const MAX_ATTEMPTS = 4;
-const USER_AGENT = `vgi-starter-worker/${VERSION}`;
+const USER_AGENT = `vgi-mvt-worker/${VERSION}`;
 
-/** Registered with DuckDB so users can run CREATE SECRET (TYPE starter_api, TOKEN '...'). */
+/** Registered with DuckDB so users can run CREATE SECRET (TYPE mvt_api, TOKEN '...'). */
 export const API_SECRET_TYPE: SecretTypeDescriptor = {
   name: SECRET_TYPE,
   description: "Bearer token for the API that fetch_items reads.",
@@ -127,7 +127,7 @@ export const fetchItems = defineTableFunction<FetchArgs, FetchState>({
   },
   argConstraints: { base_url: { pattern: "^https?://" }, page_size: { ge: 1, le: 1000 } },
 
-  // Declare the output schema and ask DuckDB for the optional `starter_api`
+  // Declare the output schema and ask DuckDB for the optional `mvt_api`
   // secret. The first bind requests the lookup; the second receives it.
   onBind: (params) =>
     params.resolvedSecretsProvided
@@ -168,15 +168,15 @@ export const fetchItems = defineTableFunction<FetchArgs, FetchState>({
         "Read all items from a paginated JSON REST API at `base_url` and return them as " +
         "rows `(id, name, category, price)`. Pages are requested `page_size` at a time " +
         "(named argument, default 100) and streamed to DuckDB as they arrive. If a " +
-        "DuckDB secret of type `starter_api` exists its `token` is sent as a bearer " +
-        "token; otherwise the `STARTER_API_TOKEN` environment variable is used. " +
+        "DuckDB secret of type `mvt_api` exists its `token` is sent as a bearer " +
+        "token; otherwise the `MVT_API_TOKEN` environment variable is used. " +
         "Rate-limit (429) and server errors are retried with backoff.",
       docMd:
         "## fetch_items(base_url, page_size := 100)\n\n" +
         "Every item from a paginated REST API, streamed one page per batch.\n\n" +
-        "Authenticate with a `starter_api` secret or the `STARTER_API_TOKEN` " +
+        "Authenticate with a `mvt_api` secret or the `MVT_API_TOKEN` " +
         "environment variable:\n\n" +
-        "```sql\nCREATE SECRET (TYPE starter_api, TOKEN 'your-token');\n```",
+        "```sql\nCREATE SECRET (TYPE mvt_api, TOKEN 'your-token');\n```",
     }),
     "vgi.result_columns_schema": JSON.stringify([
       { name: "id", type: "BIGINT", description: "Item identifier assigned by the API." },
@@ -188,14 +188,14 @@ export const fetchItems = defineTableFunction<FetchArgs, FetchState>({
   examples: [
     {
       sql:
-        "SELECT id, name, price FROM starter.main.fetch_items('https://vgi-starter-api.query-farm.services/v1') " +
+        "SELECT id, name, price FROM mvt.main.fetch_items('https://vgi-starter-api.query-farm.services/v1') " +
         "WHERE category = 'hardware' ORDER BY price DESC LIMIT 5",
       description: "The five priciest hardware items from the public demo API",
     },
     {
       sql:
         "SELECT category, count(*) AS items, avg(price) AS avg_price " +
-        "FROM starter.main.fetch_items('https://vgi-starter-api.query-farm.services/v1', page_size := 10) " +
+        "FROM mvt.main.fetch_items('https://vgi-starter-api.query-farm.services/v1', page_size := 10) " +
         "GROUP BY category ORDER BY category",
       description: "Summarize the API's items by category, ten per request",
     },

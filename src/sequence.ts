@@ -95,7 +95,7 @@ export const sequenceTable = defineTableFunction<SequenceArgs, SequenceState>({
     "vgi.executable_examples": JSON.stringify([
       {
         description: "Three rows stepping by two",
-        sql: "SELECT n, squared FROM starter.main.sequence_table(3, step := 2) ORDER BY n",
+        sql: "SELECT n, squared FROM mvt.main.sequence_table(3, step := 2) ORDER BY n",
         expected_result: [
           [0, 0],
           [2, 4],
@@ -104,18 +104,18 @@ export const sequenceTable = defineTableFunction<SequenceArgs, SequenceState>({
       },
       {
         description: "Count the rows generated",
-        sql: "SELECT count(*) AS rows FROM starter.main.sequence_table(1000)",
+        sql: "SELECT count(*) AS rows FROM mvt.main.sequence_table(1000)",
         expected_result: [[1000]],
       },
     ]),
   },
   examples: [
     {
-      sql: "SELECT n, squared FROM starter.main.sequence_table(5) ORDER BY n",
+      sql: "SELECT n, squared FROM mvt.main.sequence_table(5) ORDER BY n",
       description: "The first five values and their squares",
     },
     {
-      sql: "SELECT n FROM starter.main.sequence_table(4, step := 10) ORDER BY n",
+      sql: "SELECT n FROM mvt.main.sequence_table(4, step := 10) ORDER BY n",
       description: "Four values stepping by ten",
     },
   ],

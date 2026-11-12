@@ -29,6 +29,6 @@ jobs:
     uses: Query-farm/vgi-actions/.github/workflows/ts-release.yml@v1
     secrets: inherit
     with:
-      bin: vgi-starter-worker
+      bin: vgi-mvt-worker
       entry: src/worker.ts
       version_check_cmd: ci/check-version.sh

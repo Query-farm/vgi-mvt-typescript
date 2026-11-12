@@ -5,9 +5,9 @@
 
 <p align="center"><em>A Query.Farm VGI worker for DuckDB, written in TypeScript.</em></p>
 
-# VGI Starter Worker — TypeScript
+# VGI Mvt Worker — TypeScript
 
-[![CI](https://github.com/Query-farm/vgi-starter-typescript/actions/workflows/ci.yml/badge.svg)](https://github.com/Query-farm/vgi-starter-typescript/actions/workflows/ci.yml)
+[![CI](https://github.com/your-org/vgi-mvt/actions/workflows/ci.yml/badge.svg)](https://github.com/your-org/vgi-mvt/actions/workflows/ci.yml)
 [![vgi worker: query.farm](https://query.farm/media-kit/shields/vgi-worker.svg)](https://query.farm)
 
 [VGI](https://query.farm/vgi) lets DuckDB call functions that live in a separate
@@ -20,30 +20,6 @@ three example functions that you rename and replace with your own:
 | `sequence_table(count, step := 1)` | table | stream rows in batches, take named arguments |
 | `fetch_items(base_url, page_size := 100)` | table | page through a REST API, retry, read a secret |
 
-<!-- template-only:start -->
-## Use this template
-
-This repository is a **template**. Click **Use this template** on GitHub, or:
-
-```bash
-gh repo create my-org/weather-worker --template Query-farm/vgi-starter-typescript --private --clone
-cd weather-worker
-make init NAME=weather     # renames catalog, package, binary, env vars; removes this section
-make check                 # lint + tests over every transport + metadata score
-```
-
-Prefer to work with an AI coding agent? `make init` first, then hand it
-[AGENTS.md](AGENTS.md). See [Using with coding agents](#using-with-coding-agents).
-
-Starters exist for [Python](https://github.com/Query-farm/vgi-starter-python),
-[TypeScript](https://github.com/Query-farm/vgi-starter-typescript),
-[Go](https://github.com/Query-farm/vgi-starter-go),
-[Rust](https://github.com/Query-farm/vgi-starter-rust),
-[Java](https://github.com/Query-farm/vgi-starter-java) and
-[C#](https://github.com/Query-farm/vgi-starter-csharp). They are generated from
-[Query-farm/vgi-starters](https://github.com/Query-farm/vgi-starters); send
-changes there.
-<!-- template-only:end -->
 
 ## Quick start
 
@@ -65,7 +41,7 @@ SET allow_extension_repositories = 'allowed';
 CREATE EXTENSION REPOSITORY IF NOT EXISTS query_farm WITH PREFIX 'https://duckdb-extensions.query.farm';
 INSTALL vgi FROM query_farm;
 LOAD vgi FROM query_farm;
-ATTACH 'starter' (TYPE vgi, LOCATION '/abs/path/to/vgi-starter-typescript/bin/vgi-starter-worker');
+ATTACH 'mvt' (TYPE vgi, LOCATION '/abs/path/to/vgi-mvt/bin/vgi-mvt-worker');
 ```
 
 **Haybarn 2.0** (`uvx haybarn-cli`):
@@ -73,22 +49,22 @@ ATTACH 'starter' (TYPE vgi, LOCATION '/abs/path/to/vgi-starter-typescript/bin/vg
 ```sql
 INSTALL vgi FROM community;
 LOAD vgi;
-ATTACH 'starter' (TYPE vgi, LOCATION '/abs/path/to/vgi-starter-typescript/bin/vgi-starter-worker');
+ATTACH 'mvt' (TYPE vgi, LOCATION '/abs/path/to/vgi-mvt/bin/vgi-mvt-worker');
 ```
 
 Now call the functions:
 
 ```sql
-SELECT starter.main.greet('Ada');                         -- Hi, Ada!
-SELECT starter.main.greet('Ada', 'formal');               -- Good day, Ada.
-SELECT * FROM starter.main.sequence_table(5, step := 2) ORDER BY n;
+SELECT mvt.main.greet('Ada');                         -- Hi, Ada!
+SELECT mvt.main.greet('Ada', 'formal');               -- Good day, Ada.
+SELECT * FROM mvt.main.sequence_table(5, step := 2) ORDER BY n;
 ```
 
 `fetch_items` pages through a REST API. Try it against the public demo API (25 fixed items):
 
 ```sql
 SELECT category, count(*) AS items, round(avg(price), 2) AS avg_price
-FROM starter.main.fetch_items('https://vgi-starter-api.query-farm.services/v1')
+FROM mvt.main.fetch_items('https://vgi-starter-api.query-farm.services/v1')
 GROUP BY category ORDER BY category;
 ```
 
@@ -101,14 +77,14 @@ Worker functions compose with everything else in DuckDB:
 
 ```sql
 -- Materialize an API into a local table.
-CREATE TABLE items AS SELECT * FROM starter.main.fetch_items('https://vgi-starter-api.query-farm.services/v1');
+CREATE TABLE items AS SELECT * FROM mvt.main.fetch_items('https://vgi-starter-api.query-farm.services/v1');
 
 -- Join it with local files.
 SELECT i.name, i.price, s.units
 FROM items i JOIN 'sales.parquet' s ON s.item_id = i.id;
 
 -- Call a scalar per row of another table.
-SELECT customer, starter.main.greet(customer, 'formal') FROM read_csv('customers.csv');
+SELECT customer, mvt.main.greet(customer, 'formal') FROM read_csv('customers.csv');
 ```
 
 ## Project layout
@@ -123,7 +99,7 @@ src/
   fetch_items.ts   # REST API table function (pagination, retries, secrets)
   cli.ts           # flag parsing: stdio / --unix / --http (PORT:<n>, /health)
   log.ts           # stderr logger
-bin/               # vgi-starter-worker (what DuckDB launches) and run-recipe
+bin/               # vgi-mvt-worker (what DuckDB launches) and run-recipe
 tests/             # bun unit tests (worker subprocess + mock API)
 test/sql/          # sqllogictest files run through DuckDB
 test/mock_api/     # offline mock of the REST API used by tests
@@ -152,7 +128,7 @@ vgi-agent-tests.yaml  # private graders for the agent test tasks
 | compute one value per input row | a **scalar** function |
 | return a set of rows from arguments (an API, a file, a generator) | a **table** function |
 | transform or aggregate the rows of a query | a **table in-out** function or an **aggregate** |
-| expose a fixed dataset by name (`SELECT * FROM starter.main.t`) | a **catalog table** |
+| expose a fixed dataset by name (`SELECT * FROM mvt.main.t`) | a **catalog table** |
 | write data out to a file or service | `COPY … TO` with a copy function |
 | accept `INSERT` / `UPDATE` / `DELETE` | a catalog table with insert/update/delete functions |
 
@@ -175,19 +151,19 @@ and `examples/writable-tx-worker.ts` in vgi-typescript are complete workers.
 when one exists, and from an environment variable otherwise:
 
 ```sql
-CREATE SECRET (TYPE starter_api, TOKEN 'your-token');      -- per session, never logged
+CREATE SECRET (TYPE mvt_api, TOKEN 'your-token');      -- per session, never logged
 ```
 
 ```bash
-STARTER_API_TOKEN=your-token make run-http                # for servers and containers
+MVT_API_TOKEN=your-token make run-http                # for servers and containers
 ```
 
 Try it: the demo API's `/v1/auth` endpoint needs the published token `demo-token`.
 
 ```sql
-SELECT count(*) FROM starter.main.fetch_items('https://vgi-starter-api.query-farm.services/v1/auth');   -- fails: HTTP 401
-CREATE SECRET (TYPE starter_api, TOKEN 'demo-token');
-SELECT count(*) FROM starter.main.fetch_items('https://vgi-starter-api.query-farm.services/v1/auth');   -- 25
+SELECT count(*) FROM mvt.main.fetch_items('https://vgi-starter-api.query-farm.services/v1/auth');   -- fails: HTTP 401
+CREATE SECRET (TYPE mvt_api, TOKEN 'demo-token');
+SELECT count(*) FROM mvt.main.fetch_items('https://vgi-starter-api.query-farm.services/v1/auth');   -- 25
 ```
 
 Never bake credentials into the image or the source. If a function can't run without
@@ -211,7 +187,7 @@ unexpected skip, so a broken transport can't hide behind a green run.
 offline.
 
 **Testing against real data:** put live tests in their own `.test` file that starts with
-`require-env STARTER_LIVE`. They run only when that variable is set. Add the skip reason
+`require-env MVT_LIVE`. They run only when that variable is set. Add the skip reason
 to `EXPECTED_SKIP_REASONS` in CI.
 
 ## Metadata and the quality score
@@ -264,11 +240,11 @@ The same binary serves stdio (DuckDB starts it locally) or HTTP (you host it):
 
 ```bash
 docker build -t weather-worker .
-docker run -p 8000:8000 -e STARTER_API_TOKEN=... weather-worker   # health: GET /health
+docker run -p 8000:8000 -e MVT_API_TOKEN=... weather-worker   # health: GET /health
 ```
 
 ```sql
-ATTACH 'starter' (TYPE vgi, LOCATION 'https://workers.example.com/starter');
+ATTACH 'mvt' (TYPE vgi, LOCATION 'https://workers.example.com/mvt');
 ```
 
 Put hosted workers behind TLS and authentication. See
@@ -290,13 +266,13 @@ recipe for adding a function, the metadata checklist and the sharp edges. A good
 prompt:
 
 > Read AGENTS.md. Replace `fetch_items` with `forecast(lat DOUBLE, lon DOUBLE)` that calls
-> the Open-Meteo API. Include full metadata, a mock-server test and a `STARTER_LIVE` test.
+> the Open-Meteo API. Include full metadata, a mock-server test and a `MVT_LIVE` test.
 > You're done when `make check` passes.
 
 ## Keeping up with the template
 
 `make template-diff` shows what changed upstream (CI, docs, examples) since your copy was
-made. Your copy records its template version in `.vgi-starter.json`.
+made. Your copy records its template version in `.vgi-mvt.json`.
 
 ## Learn more
 

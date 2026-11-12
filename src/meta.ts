@@ -12,10 +12,10 @@
 
 import { field, type VgiDataType, type VgiField } from "@query-farm/vgi";
 
-export const CATALOG_NAME = "starter";
+export const CATALOG_NAME = "mvt";
 export const VERSION = "0.1.0";
 
-export const SOURCE_URL = "https://github.com/Query-farm/vgi-starter-typescript";
+export const SOURCE_URL = "https://github.com/your-org/vgi-mvt";
 
 /**
  * Categories group functions in docs and agent tools. Every object's
@@ -70,7 +70,7 @@ export const CATALOG_DOC_LLM =
   "your own functions; keep the metadata complete so agents can discover and call them.";
 
 export const CATALOG_DOC_MD =
-  "# VGI starter worker\n\n" +
+  "# VGI mvt worker\n\n" +
   "**An example [VGI](https://query.farm/vgi) worker that brings custom functions into DuckDB " +
   "SQL.** It was generated from the Query.Farm starter template and is meant to be renamed and " +
   "rewritten: every function here demonstrates one pattern you will reuse.\n\n" +
@@ -92,7 +92,7 @@ export const SCHEMA_DOC_LLM =
   "`count` rows of `(n, squared)`; use it for demos, tests, and as a template for generators. " +
   "`fetch_items(base_url, page_size := 100)` reads every item from a paginated JSON REST API as " +
   "`(id, name, category, price)` rows, streaming one page per batch, retrying rate-limited " +
-  "requests, and authenticating with a `starter_api` DuckDB secret or the `STARTER_API_TOKEN` " +
+  "requests, and authenticating with a `mvt_api` DuckDB secret or the `MVT_API_TOKEN` " +
   "environment variable. Scalars cannot take named arguments; table functions can.";
 
 export const SCHEMA_DOC_MD =
@@ -103,11 +103,11 @@ export const SCHEMA_DOC_MD =
   "- **REST readers** page through an HTTP API and authenticate with a DuckDB secret.";
 
 export const AGENT_TEST_TASKS = [
-  { name: "formal_greeting", prompt: "Using the starter worker, greet the name 'Grace' formally." },
+  { name: "formal_greeting", prompt: "Using the mvt worker, greet the name 'Grace' formally." },
   {
     name: "sum_of_squares",
     prompt:
-      "Using the starter worker, what is the sum of the squared column for the first 10 rows " +
+      "Using the mvt worker, what is the sum of the squared column for the first 10 rows " +
       "of the sequence with the default step?",
   },
   {
@@ -122,7 +122,7 @@ export const AGENT_TEST_TASKS = [
 ];
 
 export const CATALOG_TAGS: Record<string, string> = {
-  "vgi.title": "VGI Starter Worker",
+  "vgi.title": "VGI Mvt Worker",
   "vgi.subtitle": "Example DuckDB functions to rename and replace: a scalar, a table function and a REST API reader.",
   "vgi.doc_llm": CATALOG_DOC_LLM,
   "vgi.doc_md": CATALOG_DOC_MD,
@@ -139,7 +139,7 @@ export const CATALOG_TAGS: Record<string, string> = {
 };
 
 export const SCHEMA_TAGS: Record<string, string> = {
-  "vgi.title": "Starter Functions",
+  "vgi.title": "Mvt Functions",
   domain: "examples",
   "vgi.keywords": keywordsArray("greeting, sequence, generator, rest api, pagination"),
   "vgi.doc_llm": SCHEMA_DOC_LLM,

@@ -53,13 +53,13 @@ export const greet = defineScalarFunction({
       "NULL names produce NULL. This is the one-argument overload; call the two-argument " +
       "form `greet(name, style)` for the formal tone. It is a vectorized scalar, so it works " +
       "over a whole column, one result per row:\n\n" +
-      "```sql\nSELECT starter.main.greet(name) FROM people;\n```",
+      "```sql\nSELECT mvt.main.greet(name) FROM people;\n```",
     docMd:
       "## greet(name)\n\n" +
       "A casual greeting for each row: Ada becomes 'Hi, Ada!'.\n\n" +
       "NULL in, NULL out. See `greet(name, style)` for the formal tone.",
   }),
-  examples: [{ sql: "SELECT starter.main.greet('Ada') AS greeting", description: "Greet one name casually" }],
+  examples: [{ sql: "SELECT mvt.main.greet('Ada') AS greeting", description: "Greet one name casually" }],
 });
 
 /** `greet(name, style)`: a greeting in the chosen tone. */
@@ -88,5 +88,5 @@ export const greetWithStyle = defineScalarFunction({
       "A greeting in the chosen tone: 'casual' or 'formal'.\n\n" +
       "Formally, Ada becomes 'Good day, Ada.'",
   }),
-  examples: [{ sql: "SELECT starter.main.greet('Ada', 'formal') AS greeting", description: "Greet one name formally" }],
+  examples: [{ sql: "SELECT mvt.main.greet('Ada', 'formal') AS greeting", description: "Greet one name formally" }],
 });
