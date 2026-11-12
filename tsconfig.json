@@ -13,5 +13,6 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["src", "tests", "examples"]
+  "include": ["src", "tests", "examples"],
+  "exclude": ["src/browser"]
 }

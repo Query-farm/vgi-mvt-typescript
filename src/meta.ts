@@ -80,7 +80,7 @@ export const CATALOG_DOC_LLM =
   "naming one layer also returns each attribute the tileset metadata lists as a typed column. " +
   "Sources: PMTiles archives over HTTP range requests (or local files when the worker runs under " +
   "Bun) and `{z}/{x}/{y}` tile-server URL templates. The worker is written in TypeScript so the " +
-  "same code also runs inside a browser Web Worker next to DuckDB-WASM. Read the tileset metadata " +
+  "same code also runs inside a browser Web Worker next to Haybarn WASM (Haybarn's DuckDB build for the browser). Read the tileset metadata " +
   "first to learn its zoom range, layers and attributes. Geometry is quantised to the tile grid. " +
   "Tilesets store a feature once per tile it touches: `tile_edges := 'clip'` (the default) trims " +
   "each piece to its own tile so lengths and areas add up, `'raw'` returns tiles as stored.";
