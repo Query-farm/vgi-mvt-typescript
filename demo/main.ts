@@ -18,16 +18,20 @@ export const EXAMPLES: { title: string; sql: string }[] = [
     sql: `SELECT layer, count(*) AS attributes\nFROM mvt.main.tileset_layers('${FLORENCE}')\nGROUP BY layer ORDER BY layer;`,
   },
   {
-    title: "Florence roads by kind",
+    title: "A tileset stores a road once per tile: raw, clip and merge",
+    sql: `SELECT mode, count(*) AS rows, count(DISTINCT feature_id) AS roads\nFROM (\n  SELECT 'raw' AS mode, feature_id FROM mvt.main.read_tiles('${FLORENCE}', zoom := 14, layer := 'roads', tile_edges := 'raw')\n  UNION ALL\n  SELECT 'clip', feature_id FROM mvt.main.read_tiles('${FLORENCE}', zoom := 14, layer := 'roads', tile_edges := 'clip')\n  UNION ALL\n  SELECT 'merge', feature_id FROM mvt.main.read_tiles('${FLORENCE}', zoom := 14, layer := 'roads')\n)\nGROUP BY mode ORDER BY rows DESC;`,
+  },
+  {
+    title: "Florence roads by kind, with their length",
     sql: `SELECT "pmap:kind" AS kind, count(*) AS roads,\n       round(sum(ST_Length_Spheroid(geometry)) / 1000, 1) AS km\nFROM mvt.main.read_tiles('${FLORENCE}', layer := 'roads', zoom := 14)\nGROUP BY kind ORDER BY km DESC;`,
   },
   {
     title: "Places in central Florence, from a 4.66 GB worldwide file",
-    sql: `SELECT properties->>'category_main' AS category, count(*) AS n\nFROM mvt.main.read_tiles('${OVERTURE}', layer := 'pois', zoom := 14,\n       west := 11.24, south := 43.76, east := 11.27, north := 43.78)\nWHERE ST_Intersects(geometry, ST_MakeEnvelope(11.24, 43.76, 11.27, 43.78))\nGROUP BY ALL ORDER BY n DESC LIMIT 10;`,
+    sql: `SELECT category_main, count(*) AS n\nFROM mvt.main.read_tiles('${OVERTURE}', layer := 'pois')\nWHERE ST_Intersects(geometry, ST_MakeEnvelope(11.24, 43.76, 11.27, 43.78))\nGROUP BY ALL ORDER BY n DESC LIMIT 10;`,
   },
   {
     title: "Join two tilesets: Overture places inside each kind of Florence land use",
-    sql: `WITH landuse AS (\n  SELECT "pmap:kind" AS kind, geometry\n  FROM mvt.main.read_tiles('${FLORENCE}', layer := 'landuse', zoom := 14,\n         west := 11.24, south := 43.76, east := 11.27, north := 43.78)\n), places AS (\n  SELECT properties->>'category_main' AS category, geometry\n  FROM mvt.main.read_tiles('${OVERTURE}', layer := 'pois', zoom := 14,\n         west := 11.24, south := 43.76, east := 11.27, north := 43.78)\n)\nSELECT l.kind, count(*) AS places, mode(p.category) AS most_common\nFROM landuse l JOIN places p ON ST_Contains(l.geometry, p.geometry)\nGROUP BY l.kind ORDER BY places DESC;`,
+    sql: `WITH landuse AS (\n  SELECT "pmap:kind" AS kind, geometry\n  FROM mvt.main.read_tiles('${FLORENCE}', layer := 'landuse', zoom := 14)\n  WHERE ST_Intersects(geometry, ST_MakeEnvelope(11.24, 43.76, 11.27, 43.78))\n), places AS (\n  SELECT category_main AS category, geometry\n  FROM mvt.main.read_tiles('${OVERTURE}', layer := 'pois')\n  WHERE ST_Intersects(geometry, ST_MakeEnvelope(11.24, 43.76, 11.27, 43.78))\n)\nSELECT l.kind, count(*) AS places, mode(p.category) AS most_common\nFROM landuse l JOIN places p ON ST_Contains(l.geometry, p.geometry)\nGROUP BY l.kind ORDER BY places DESC;`,
   },
 ];
 

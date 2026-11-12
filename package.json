@@ -13,7 +13,8 @@
   "dependencies": {
     "@query-farm/apache-arrow": "^21.1.1",
     "@query-farm/vgi": "~0.50.0",
-    "@query-farm/vgi-rpc": "^0.29.7"
+    "@query-farm/vgi-rpc": "^0.29.7",
+    "polygon-clipping": "0.15.7"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.6.6",

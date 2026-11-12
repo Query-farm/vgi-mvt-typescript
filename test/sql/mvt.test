@@ -108,11 +108,19 @@ WHERE name = 'Berlin';
 ----
 true
 
-# tile_edges: 'clip' trims each piece to its tile, so lengths and areas are below 'raw'
-# (which double-counts the buffers) and match the Python worker's clip mode.
+# tile_edges: one row per feature by default ('merge'); 'clip' keeps one piece per tile, and
+# 'raw' keeps every tile's copy, buffers included. Merge and clip measure the same; raw counts
+# the buffers twice. All three match the Python worker.
 query TIRR
 SELECT layer, count(*), round(sum(ST_Length(geometry)), 6), round(sum(ST_Area(geometry)), 6)
 FROM mvt.main.read_tiles('{MVT_FIXTURES}/edges.pmtiles', zoom := 3) GROUP BY layer ORDER BY layer;
+----
+areas	2	0.0	265.063188
+roads	2	47.568761	0.0
+
+query TIRR
+SELECT layer, count(*), round(sum(ST_Length(geometry)), 6), round(sum(ST_Area(geometry)), 6)
+FROM mvt.main.read_tiles('{MVT_FIXTURES}/edges.pmtiles', zoom := 3, tile_edges := 'clip') GROUP BY layer ORDER BY layer;
 ----
 areas	5	0.0	265.063188
 roads	4	47.571152	0.0
@@ -123,6 +131,16 @@ FROM mvt.main.read_tiles('{MVT_FIXTURES}/edges.pmtiles', zoom := 3, tile_edges :
 ----
 areas	5	0.0	315.031777
 roads	4	52.319171	0.0
+
+# One row per feature. The fixture's features have no ids, so their pieces join where they
+# touch at the tile edge.
+query TT
+SELECT properties->>'name', geometry_type FROM mvt.main.read_tiles('{MVT_FIXTURES}/edges.pmtiles', zoom := 3) ORDER BY 1;
+----
+Diagonal	LINESTRING
+Four tiles	POLYGON
+One tile	POLYGON
+Short	LINESTRING
 
 statement error
 SELECT * FROM mvt.main.read_tiles('{MVT_FIXTURES}/edges.pmtiles', tile_edges := 'dedupe');
@@ -139,6 +157,27 @@ query I
 SELECT count(*) FROM mvt.main.read_tiles('{MVT_FIXTURES}/sample.pmtiles', zoom := 3, west := 0, south := 40, east := 30, north := 55);
 ----
 6
+
+# The pushed ST_Intersects box narrows the tiles read (max_tiles := 1 would fail otherwise),
+# and lets a {z}/{x}/{y} template run without an explicit bbox.
+query I
+SELECT count(*) FROM mvt.main.read_tiles('{MVT_FIXTURES}/sample.pmtiles', zoom := 1, layer := 'cities', max_tiles := 1)
+WHERE ST_Intersects(geometry, ST_MakeEnvelope(1, 40, 30, 55));
+----
+4
+
+query I
+SELECT count(*) FROM mvt.main.read_tiles('{MVT_TILE_SERVER}/xyz/{z}/{x}/{y}.mvt', zoom := 2, layer := 'cities')
+WHERE ST_Intersects(geometry, ST_MakeEnvelope(1, 40, 30, 55));
+----
+4
+
+# A filter box outside every tile reads nothing.
+query I
+SELECT count(*) FROM mvt.main.read_tiles('{MVT_FIXTURES}/sample.pmtiles', zoom := 3)
+WHERE ST_Intersects(geometry, ST_MakeEnvelope(-170, -10, -160, 0));
+----
+0
 
 # ---------------------------------------------------------------- remote sources (offline HTTP server)
 

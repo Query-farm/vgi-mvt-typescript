@@ -14,8 +14,8 @@
 
 import type { Part } from "./mvt.ts";
 
-export type TileEdges = "raw" | "clip";
-export const TILE_EDGE_CHOICES: TileEdges[] = ["clip", "raw"];
+export type TileEdges = "merge" | "clip" | "raw";
+export const TILE_EDGE_CHOICES: TileEdges[] = ["merge", "clip", "raw"];
 
 /**
  * Cut points snap to a grid of 65536 units per tile (1/16 pixel at extent 4096), the

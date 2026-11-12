@@ -223,17 +223,31 @@ export class RowBuilder {
       }
       const [gtype, wkb] = partsWkb(f.geomType, parts, p, layer.version);
       if (this.edges === "clip" && wkb === null) continue;
-      const c = this.cols;
-      c.layer!.push(layer.name);
-      c.z!.push(z);
-      c.x!.push(x);
-      c.y!.push(y);
-      c.feature_id!.push(f.id);
-      c.geometry_type!.push(gtype);
-      c.geometry!.push(wkb);
-      c.properties!.push(propertiesJson(f.properties));
-      for (const { name, kind } of this.extra) c[name]!.push(convert(f.properties.get(name), kind));
+      this.append(layer.name, z, x, y, f.id, gtype, wkb, f.properties);
     }
+  }
+
+  /** Append one row. */
+  append(
+    layer: string,
+    z: number,
+    x: number,
+    y: number,
+    featureId: bigint | null,
+    geometryType: string,
+    wkb: Uint8Array | null,
+    props: Map<string, PropertyValue>,
+  ): void {
+    const c = this.cols;
+    c.layer!.push(layer);
+    c.z!.push(z);
+    c.x!.push(x);
+    c.y!.push(y);
+    c.feature_id!.push(featureId);
+    c.geometry_type!.push(geometryType);
+    c.geometry!.push(wkb);
+    c.properties!.push(propertiesJson(props));
+    for (const { name, kind } of this.extra) c[name]!.push(convert(props.get(name), kind));
   }
 
   take() {

@@ -6,6 +6,7 @@
 import type { VgiSchema } from "@query-farm/vgi";
 import { batchFromColumns, defineTableFunction, float64, int32, schema, utf8 } from "@query-farm/vgi/worker-cf";
 import { TILE_EDGE_CHOICES, type TileEdges } from "./edges.ts";
+import { assemblerFor } from "./merge.ts";
 import { column, FIRENZE_PMTILES, objectTags } from "./meta.ts";
 import {
   type BBox,
@@ -16,6 +17,7 @@ import {
   MvtDecodeError,
   maybeDecompress,
 } from "./mvt.ts";
+import { clampToWorld, INTERSECTS_EXTENT, intersect, pushedBBox } from "./pushdown.ts";
 import { attributeFields, inferFieldTypes, outputSchema, RESULT_COLUMNS_DOC, RowBuilder } from "./rows.ts";
 import { httpGet, isUrl, openSource, type TileKey, TileSourceError } from "./sources.ts";
 
@@ -26,7 +28,7 @@ const COORDS_DOC = "Output coordinates: 'wgs84' (default), 'web_mercator' or 'ti
 const LAYER_DOC =
   "Read only this layer; NULL reads every layer. Naming a layer also adds a typed column per attribute the tileset metadata lists for it.";
 const EDGES_DOC =
-  "How to treat features cut at tile edges: 'clip' (default) trims each piece to its own tile so lengths and areas add up; 'raw' returns every tile as stored, buffer included.";
+  "How to treat features cut at tile edges: 'merge' (default) joins a feature's pieces across tiles into one row; 'clip' trims each piece to its own tile without joining; 'raw' returns every tile as stored, buffer included.";
 
 interface ReadTilesArgs {
   source: string;
@@ -45,7 +47,11 @@ interface ReadTilesState {
   listed: boolean;
   keys: number[]; // flattened [z, x, y, z, x, y, ...]
   next: number;
+  run: string; // identifies this query's merge state in this process
 }
+
+// A pushed box is grown by this much (degrees) so a feature exactly on its edge still reads its tile.
+const HINT_MARGIN = 1e-9;
 
 function bboxOf(a: ReadTilesArgs): BBox | null {
   const parts = [a.west, a.south, a.east, a.north];
@@ -87,7 +93,7 @@ export const readTiles = defineTableFunction<ReadTilesArgs, ReadTilesState>({
     east: null,
     north: null,
     coordinates: "wgs84",
-    tile_edges: "clip",
+    tile_edges: "merge",
     max_tiles: DEFAULT_MAX_TILES,
   },
   argDocs: {
@@ -128,16 +134,33 @@ export const readTiles = defineTableFunction<ReadTilesArgs, ReadTilesState>({
     return { outputSchema: outputSchema(coordinates, layer ? attributeFields(layer.fields) : []) };
   },
 
-  initialState: () => ({ listed: false, keys: [], next: 0 }),
+  // Accept DuckDB's filters so the VGI extension can push the bounding box of
+  // WHERE ST_Intersects(geometry, <constant>) (an optional `&&` hint) into the
+  // scan; the SDK applies every pushed filter to the rows we emit.
+  filterPushdown: true,
+  autoApplyFilters: true,
+  additionalFilterFunctions: [INTERSECTS_EXTENT],
+
+  initialState: () => ({ listed: false, keys: [], next: 0, run: "" }),
 
   process: async (params, state, out) => {
     const a = params.args;
     const src = await openSource(a.source);
     if (!state.listed) {
-      const z = await resolveZoom(a.source, a.zoom);
-      const keys = await src.tiles(z, bboxOf(a), Number(a.max_tiles));
-      state.keys = keys.flat();
       state.listed = true;
+      state.run = crypto.randomUUID();
+      const hint = pushedBBox(params.pushdownFilters as Parameters<typeof pushedBBox>[0], a.coordinates as Coordinates);
+      const grown: BBox | null = hint
+        ? [hint[0] - HINT_MARGIN, hint[1] - HINT_MARGIN, hint[2] + HINT_MARGIN, hint[3] + HINT_MARGIN]
+        : null;
+      const combined = hint === false ? false : intersect(bboxOf(a), grown);
+      const clamped = combined ? clampToWorld(combined) : combined;
+      if (clamped === false) {
+        out.finish(); // the filters prove nothing can match
+        return;
+      }
+      const z = await resolveZoom(a.source, a.zoom);
+      state.keys = (await src.tiles(z, clamped, Number(a.max_tiles))).flat();
     }
     if (state.next * 3 >= state.keys.length) {
       out.finish();
@@ -154,8 +177,18 @@ export const readTiles = defineTableFunction<ReadTilesArgs, ReadTilesState>({
       a.layer ?? null,
       a.tile_edges as TileEdges,
     );
-    for (const [[z, x, y], data] of await src.fetch(chunk)) {
-      await inTile(z, x, y, () => rows.addTile(z, x, y, data));
+    if (a.tile_edges === "merge") {
+      const all: TileKey[] = [];
+      for (let i = 0; i * 3 < state.keys.length; i++)
+        all.push([state.keys[i * 3]!, state.keys[i * 3 + 1]!, state.keys[i * 3 + 2]!]);
+      const edges = assemblerFor(state.run, src, all, a.layer ?? null, a.coordinates as Coordinates);
+      for (const [[z, x, y], data] of await src.fetch(chunk)) {
+        await inTile(z, x, y, () => edges.addTile(rows, [z, x, y], data));
+      }
+    } else {
+      for (const [[z, x, y], data] of await src.fetch(chunk)) {
+        await inTile(z, x, y, () => rows.addTile(z, x, y, data));
+      }
     }
     out.emit(rows.take());
   },
@@ -172,12 +205,15 @@ export const readTiles = defineTableFunction<ReadTilesArgs, ReadTilesState>({
         "or a tile URL template with {z}/{x}/{y}. Named arguments: `zoom` (default: the tileset's " +
         "maxzoom), `layer` (one layer, adding a typed column per attribute the metadata lists), " +
         "`west`/`south`/`east`/`north` (a WGS84 bbox that selects tiles; required for URL templates), " +
-        "`coordinates` ('wgs84', 'web_mercator' or 'tile'), `tile_edges` ('clip' trims pieces to their " +
-        "tile, 'raw' returns tiles as stored) and `max_tiles` (default 10000). A bbox selects tiles, " +
-        "not features: filter features with ST_Intersects afterwards.",
+        "`coordinates` ('wgs84', 'web_mercator' or 'tile'), `tile_edges` ('merge', the default, joins a " +
+        "feature's pieces across tiles into one row; 'clip' trims pieces to their tile; 'raw' returns " +
+        "tiles as stored) and `max_tiles` (default 10000). A bbox argument selects tiles, not features. " +
+        "`WHERE ST_Intersects(geometry, <constant geometry>)` (or ST_Contains, ST_Within, ST_Covers, " +
+        "ST_Overlaps, ...) is pushed down: its bounding box chooses the tiles, and DuckDB still applies " +
+        "the exact predicate. The box must be a constant: one from a join, an OR or a NOT isn't pushed.",
       docMd:
         "## read_tiles(source, zoom := maxzoom, layer := NULL, west/south/east/north := NULL, " +
-        "coordinates := 'wgs84', tile_edges := 'clip', max_tiles := 10000)\n\n" +
+        "coordinates := 'wgs84', tile_edges := 'merge', max_tiles := 10000)\n\n" +
         "Read a PMTiles archive or XYZ tile server at one zoom as one row per feature. Remote " +
         "PMTiles are read with HTTP range requests, so a bbox over a planet-sized archive fetches " +
         "only the directory pages and tiles under it.",

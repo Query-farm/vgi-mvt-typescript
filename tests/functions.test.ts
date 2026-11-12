@@ -5,7 +5,9 @@ import { join } from "node:path";
 import { Arguments, VgiClient } from "@query-farm/vgi";
 import { subprocessConnect } from "@query-farm/vgi-rpc";
 import { clipLine, clipParts, clipRing } from "../src/edges.ts";
+import { lineMerge } from "../src/merge.ts";
 import { decodeGeometry, decodeTile, featureWkb, maybeDecompress, Projector, tileRange } from "../src/mvt.ts";
+import { clampToWorld, intersect, pushedBBox, wkbEnvelope } from "../src/pushdown.ts";
 import { propertiesJson } from "../src/rows.ts";
 import { parseDirectory, tileIdToZxy, zxyToTileId } from "../src/sources.ts";
 
@@ -114,6 +116,67 @@ test("clip: points belong to the tile whose square contains them", () => {
   expect(clipParts(1, [[10, 10, -5, 10, 4096, 20]], 4096)).toEqual([[10, 10]]);
 });
 
+test("line merge: chains pieces end to end, in either direction", () => {
+  // a->b, c->b (reversed), c->d: one line a..d.
+  expect(
+    lineMerge([
+      [0, 0, 1, 0],
+      [2, 0, 1, 0],
+      [2, 0, 3, 0],
+    ]),
+  ).toEqual([[0, 0, 1, 0, 2, 0, 3, 0]]);
+  // A three-way junction isn't merged through.
+  expect(
+    lineMerge([
+      [0, 0, 1, 0],
+      [1, 0, 2, 0],
+      [1, 0, 1, 1],
+    ]).length,
+  ).toBe(3);
+  // A closed loop of pieces becomes one ring.
+  expect(
+    lineMerge([
+      [0, 0, 1, 0],
+      [1, 0, 1, 1],
+      [1, 1, 0, 0],
+    ]),
+  ).toEqual([[0, 0, 1, 0, 1, 1, 0, 0]]);
+});
+
+test("pushdown: WKB envelopes, box arithmetic and the pushed filter", () => {
+  // POLYGON ((1 40, 30 40, 30 55, 1 55, 1 40)), little-endian.
+  const ring = [1, 40, 30, 40, 30, 55, 1, 55, 1, 40];
+  const buf = new ArrayBuffer(9 + 4 + ring.length * 8);
+  const v = new DataView(buf);
+  v.setUint8(0, 1);
+  v.setUint32(1, 3, true);
+  v.setUint32(5, 1, true);
+  v.setUint32(9, 5, true);
+  ring.forEach((c, i) => {
+    v.setFloat64(13 + i * 8, c, true);
+  });
+  const wkb = new Uint8Array(buf);
+  expect(wkbEnvelope(wkb)).toEqual([1, 40, 30, 55]);
+  expect(wkbEnvelope(wkb.subarray(0, 20))).toBeNull();
+  expect(intersect([0, 0, 10, 10], [5, 5, 20, 20])).toEqual([5, 5, 10, 10]);
+  expect(intersect([0, 0, 1, 1], [5, 5, 6, 6])).toBe(false);
+  expect(clampToWorld([-200, -90, 200, 90])).toEqual([-180, -85.0511287798066, 180, 85.0511287798066]);
+  const call = (args: unknown[]) => ({
+    expression: {
+      node: "call",
+      function: { namespace: "duckdb.spatial", name: "intersects_extent", version: 1 },
+      arguments: args,
+    },
+  });
+  const geomRef = { node: "column_ref", columnIndex: 6, columnName: "geometry" };
+  expect(pushedBBox({ predicates: [call([geomRef, { node: "literal", value: wkb }])] }, "wgs84")).toEqual([
+    1, 40, 30, 55,
+  ]);
+  // Raw tile pixels can't be turned into a geographic box.
+  expect(pushedBBox({ predicates: [call([geomRef, { node: "literal", value: wkb }])] }, "tile")).toBeNull();
+  expect(pushedBBox(undefined, "wgs84")).toBeNull();
+});
+
 describe("against the worker", () => {
   let client: VgiClient;
 
@@ -154,8 +217,20 @@ describe("against the worker", () => {
     expect(berlin.capital).toBe(true);
   });
 
+  test("read_tiles: merge joins a feature's pieces into one row", async () => {
+    const merged = await table("read_tiles", [fixture("edges.pmtiles")], { zoom: 3 });
+    expect(countBy(merged, "layer")).toEqual({ areas: 2, roads: 2 });
+    // The fixture's features have no ids, so their pieces join where they touch at the edge.
+    expect(merged.map((r) => JSON.parse(String(r.properties)).name).sort()).toEqual([
+      "Diagonal",
+      "Four tiles",
+      "One tile",
+      "Short",
+    ]);
+  });
+
   test("read_tiles: clip keeps one piece per tile, raw keeps the buffers", async () => {
-    const clip = await table("read_tiles", [fixture("edges.pmtiles")], { zoom: 3 });
+    const clip = await table("read_tiles", [fixture("edges.pmtiles")], { zoom: 3, tile_edges: "clip" });
     const raw = await table("read_tiles", [fixture("edges.pmtiles")], { zoom: 3, tile_edges: "raw" });
     expect(countBy(clip, "layer")).toEqual({ areas: 5, roads: 4 });
     expect(countBy(raw, "layer")).toEqual({ areas: 5, roads: 4 });

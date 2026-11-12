@@ -82,8 +82,10 @@ export const CATALOG_DOC_LLM =
   "Bun) and `{z}/{x}/{y}` tile-server URL templates. The worker is written in TypeScript so the " +
   "same code also runs inside a browser Web Worker next to Haybarn WASM (Haybarn's DuckDB build for the browser). Read the tileset metadata " +
   "first to learn its zoom range, layers and attributes. Geometry is quantised to the tile grid. " +
-  "Tilesets store a feature once per tile it touches: `tile_edges := 'clip'` (the default) trims " +
-  "each piece to its own tile so lengths and areas add up, `'raw'` returns tiles as stored.";
+  "Tilesets store a feature once per tile it touches: `tile_edges := 'merge'` (the default) joins " +
+  "those pieces back into one row per feature, `'clip'` trims each piece to its own tile, `'raw'` " +
+  "returns tiles as stored. A `WHERE ST_Intersects(geometry, <constant>)` filter also chooses which " +
+  "tiles are read, so a small area of a planet-sized archive costs only a few range requests.";
 
 export const CATALOG_DOC_MD =
   "# Read Mapbox Vector Tiles in DuckDB\n\n" +

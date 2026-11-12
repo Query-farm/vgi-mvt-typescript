@@ -494,7 +494,12 @@ export type GeometryType =
   | "MULTIPOLYGON"
   | "UNKNOWN";
 
-function writePolygon(w: WkbWriter, rings: Part[], p: Projector): void {
+/** Anything that maps flat [x, y, ...] coordinates to output coordinates. */
+export interface PartProjector {
+  project(part: Part): number[];
+}
+
+function writePolygon(w: WkbWriter, rings: Part[], p: PartProjector): void {
   w.header(3);
   w.u32(rings.length);
   for (const r of rings) w.sequence(p.project(r));
@@ -505,7 +510,12 @@ function writePolygon(w: WkbWriter, rings: Part[], p: Projector): void {
  * unknown geometry. `version` is the layer's MVT version: 2 classifies polygon rings
  * by winding (the spec), 1 by nesting.
  */
-export function partsWkb(gtype: number, parts: Part[], p: Projector, version = 2): [GeometryType, Uint8Array | null] {
+export function partsWkb(
+  gtype: number,
+  parts: Part[],
+  p: PartProjector,
+  version = 2,
+): [GeometryType, Uint8Array | null] {
   const w = new WkbWriter();
   if (gtype === 1) {
     const points = parts.flat();
@@ -560,6 +570,26 @@ export function partsWkb(gtype: number, parts: Part[], p: Projector, version = 2
     return ["MULTIPOLYGON", w.done()];
   }
   return ["UNKNOWN", null];
+}
+
+/** WKB of lines (already split into parts): LINESTRING or MULTILINESTRING; null when none has 2 points. */
+export function linesWkb(lines: Part[], p: PartProjector): [GeometryType, Uint8Array | null] {
+  return partsWkb(2, lines, p);
+}
+
+/** WKB of polygons whose rings are already grouped (exterior first): POLYGON or MULTIPOLYGON. */
+export function polygonsWkb(polygons: Part[][], p: PartProjector): [GeometryType, Uint8Array | null] {
+  const w = new WkbWriter();
+  const usable = polygons.filter((poly) => poly.length > 0 && poly[0]!.length >= 8);
+  if (usable.length === 0) return ["POLYGON", null];
+  if (usable.length === 1) {
+    writePolygon(w, usable[0]!, p);
+    return ["POLYGON", w.done()];
+  }
+  w.header(6);
+  w.u32(usable.length);
+  for (const poly of usable) writePolygon(w, poly, p);
+  return ["MULTIPOLYGON", w.done()];
 }
 
 export function featureWkb(f: Feature, p: Projector, version = 2): [GeometryType, Uint8Array | null] {

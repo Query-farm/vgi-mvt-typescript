@@ -36,17 +36,21 @@ Rows carry `layer, z, x, y, feature_id, geometry_type, geometry (GEOMETRY), prop
 
 ## Compared with the Python worker
 
-Checked against vgi-mvt 0.2.2 on the same inputs:
+Checked against vgi-mvt 0.2.2 on the same inputs (Florence basemap at z14, the test fixtures,
+the 4.66 GB Overture places archive):
 
-- `tile_edges := 'raw'` is identical: on Florence's roads at z14, 4,092 rows, 3,628 ids, the same
-  total length and the same 67,731 vertices; building areas agree to 1e-11.
-- `'clip'` (the default here) gives the same rows (3,847) and ids (3,557); areas match exactly.
-  Total line length differs by about one part in a million, where GEOS dissolves a line that
-  overlaps itself and a segment clip doesn't.
+- `tile_edges := 'merge'` (the default): the same rows (roads 3,557, buildings 115, land use
+  1,361), the same count of each geometry type, and areas within 2e-8. Pieces are joined with
+  [polygon-clipping](https://github.com/mfogel/polygon-clipping) where Python uses GEOS; one
+  building of 115 comes back with two parts touching (`ST_MakeValid` fixes it), and total line
+  length differs by a few parts in a million, where GEOS dissolves a line that overlaps itself.
+- `'clip'`: the same rows (3,847) and ids (3,557); areas match exactly.
+- `'raw'`: identical, including vertex counts.
+- Pushdown: `WHERE ST_Intersects(geometry, ST_MakeEnvelope(11.24, 43.76, 11.27, 43.78))` on the
+  Overture archive reads only the tiles under the box and returns the same counts.
 
-Not ported yet: `tile_edges := 'merge'` (joining pieces across tiles; the Python worker's
-default), `ATTACH ... tileset` catalog tables, `mvt_decode`, `tileset_metadata`, MBTiles,
-spatial filter pushdown and the `COPY ... TO (FORMAT 'mvt.pmtiles')` writer.
+Not ported yet: `ATTACH ... tileset` catalog tables, `mvt_decode`, `tileset_metadata`, MBTiles
+and the `COPY ... TO (FORMAT 'mvt.pmtiles')` writer.
 
 ## Demo
 
