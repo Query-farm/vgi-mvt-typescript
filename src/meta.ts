@@ -10,22 +10,34 @@
  *   `SCHEMA_CATEGORIES`, search keywords, and LLM- and human-facing docs.
  */
 
-import { field, type VgiDataType, type VgiField } from "@query-farm/vgi";
+import type { VgiDataType, VgiField } from "@query-farm/vgi";
+import { field } from "@query-farm/vgi/worker-cf";
 
 export const CATALOG_NAME = "mvt";
 export const VERSION = "0.1.0";
 
-export const SOURCE_URL = "https://github.com/your-org/vgi-mvt";
+export const SOURCE_URL = "https://github.com/Query-farm/vgi-mvt-typescript";
 
 /**
  * Categories group functions in docs and agent tools. Every object's
  * `vgi.category` must name one of these.
  */
 export const SCHEMA_CATEGORIES = [
-  { name: "text", title: "Text", description: "Functions that build or transform strings." },
-  { name: "generators", title: "Generators", description: "Table functions that generate rows." },
-  { name: "api", title: "REST APIs", description: "Table functions that read from HTTP APIs." },
+  {
+    name: "readers",
+    title: "Tile Readers",
+    description: "Table functions that read vector tiles from tilesets, URLs and single tiles into rows.",
+  },
+  {
+    name: "metadata",
+    title: "Tileset Metadata",
+    description: "Table functions that describe a tileset: layers, attributes, zoom range and bounds.",
+  },
 ] as const;
+
+/** Public sample tilesets used in the (non-executable) examples and the README. */
+export const FIRENZE_PMTILES =
+  "https://raw.githubusercontent.com/protomaps/PMTiles/main/spec/v3/protomaps(vector)ODbL_firenze.pmtiles";
 
 export type Category = (typeof SCHEMA_CATEGORIES)[number]["name"];
 
@@ -62,76 +74,72 @@ export function column(name: string, type: VgiDataType, comment: string, nullabl
 }
 
 export const CATALOG_DOC_LLM =
-  "An example VGI worker generated from the Query.Farm starter template. It shows the three " +
-  "shapes most workers need: a vectorized scalar function (`greet`, with a one- and two-argument " +
-  "overload), a deterministic table function with a named default argument (`sequence_table`), " +
-  "and a table function that pages through a REST API with retries and an optional bearer token " +
-  "taken from a DuckDB secret or an environment variable (`fetch_items`). Replace these with " +
-  "your own functions; keep the metadata complete so agents can discover and call them.";
+  "Decode Mapbox Vector Tiles (MVT, the protobuf tile format behind most web maps) into DuckDB " +
+  "rows. Each feature becomes a row with its layer, tile address (z/x/y), feature id, a `GEOMETRY` " +
+  "in WGS84 longitude/latitude (or Web Mercator, or raw tile pixels) and its attributes as `JSON`; " +
+  "naming one layer also returns each attribute the tileset metadata lists as a typed column. " +
+  "Sources: PMTiles archives over HTTP range requests (or local files when the worker runs under " +
+  "Bun) and `{z}/{x}/{y}` tile-server URL templates. The worker is written in TypeScript so the " +
+  "same code also runs inside a browser Web Worker next to DuckDB-WASM. Read the tileset metadata " +
+  "first to learn its zoom range, layers and attributes. Geometry is quantised to the tile grid. " +
+  "Tilesets store a feature once per tile it touches: `tile_edges := 'clip'` (the default) trims " +
+  "each piece to its own tile so lengths and areas add up, `'raw'` returns tiles as stored.";
 
 export const CATALOG_DOC_MD =
-  "# VGI mvt worker\n\n" +
-  "**An example [VGI](https://query.farm/vgi) worker that brings custom functions into DuckDB " +
-  "SQL.** It was generated from the Query.Farm starter template and is meant to be renamed and " +
-  "rewritten: every function here demonstrates one pattern you will reuse.\n\n" +
-  "- `greet(name)` and `greet(name, style)`: a vectorized scalar with an overload and a " +
-  "constrained constant argument.\n" +
-  "- `sequence_table(count, step := 1)`: a deterministic table function that streams its " +
-  "output in batches.\n" +
-  "- `fetch_items(base_url, page_size := 100)`: wraps a paginated REST API, retrying politely " +
-  "and reading a bearer token from a DuckDB secret or the environment.\n\n" +
-  "The worker speaks Apache Arrow to DuckDB over stdin/stdout, a Unix socket, or HTTP, so the " +
-  "same code runs as a local subprocess or a hosted service. See the " +
-  "[VGI documentation](https://query.farm/vgi/docs/) to learn more.";
+  "# Read Mapbox Vector Tiles in DuckDB\n\n" +
+  "**Turn vector tiles back into data.** Decode Mapbox Vector Tiles into rows with a DuckDB " +
+  "`GEOMETRY` column and the features' attributes, from PMTiles archives or `{z}/{x}/{y}` tile " +
+  "servers.\n\n" +
+  "Coordinates come back as WGS84 longitude/latitude by default; Web Mercator metres and raw tile " +
+  "pixels are available too. Vector tiles are a lossy, display-oriented format: coordinates snap " +
+  "to a grid of usually 4096 per tile, and features are clipped at tile edges and simplified at low " +
+  "zoom, so read the highest zoom for the most faithful geometry.";
 
 export const SCHEMA_DOC_LLM =
-  "The `main` schema holds the starter template's example functions, one per common worker " +
-  "pattern. `greet(name)` and `greet(name, style)` are vectorized scalars: use them inside a " +
-  "projection or predicate, one result per row; `style` is a constant that must be 'casual' or " +
-  "'formal'. `sequence_table(count, step := 1)` is a deterministic table function that returns " +
-  "`count` rows of `(n, squared)`; use it for demos, tests, and as a template for generators. " +
-  "`fetch_items(base_url, page_size := 100)` reads every item from a paginated JSON REST API as " +
-  "`(id, name, category, price)` rows, streaming one page per batch, retrying rate-limited " +
-  "requests, and authenticating with a `mvt_api` DuckDB secret or the `MVT_API_TOKEN` " +
-  "environment variable. Scalars cannot take named arguments; table functions can.";
+  "Vector tile readers. Every feature-reading function returns the same leading columns: layer, z, " +
+  "x, y, feature_id, geometry_type, geometry (`GEOMETRY`), properties (`JSON`). Tile addresses use " +
+  "the XYZ scheme (row 0 at the north). Whole tilesets are read one zoom at a time, limited by an " +
+  "optional WGS84 bbox (west, south, east, north) that selects tiles, not features: filter features " +
+  "afterwards with `ST_Intersects`. A `max_tiles` guard (default 10000) stops accidental " +
+  "planet-sized reads. Use DuckDB spatial (ST_*) on the geometry column.";
 
 export const SCHEMA_DOC_MD =
   "## main\n\n" +
-  "The starter template's example functions, one per common worker pattern.\n\n" +
-  "- **Scalars** answer one question per row and slot into a projection or predicate.\n" +
-  "- **Table functions** return sets of rows, streamed to DuckDB in Arrow batches.\n" +
-  "- **REST readers** page through an HTTP API and authenticate with a DuckDB secret.";
+  "Read vector tiles as tables: whole tilesets at one zoom or single tiles, plus the layer " +
+  "catalogue that describes a tileset.\n\n" +
+  "Feature rows always carry `layer`, `z`, `x`, `y`, `feature_id`, `geometry_type`, `geometry` and " +
+  "`properties`.";
 
 export const AGENT_TEST_TASKS = [
-  { name: "formal_greeting", prompt: "Using the mvt worker, greet the name 'Grace' formally." },
   {
-    name: "sum_of_squares",
+    name: "fixture_city_count",
     prompt:
-      "Using the mvt worker, what is the sum of the squared column for the first 10 rows " +
-      "of the sequence with the default step?",
+      "Using the mvt worker, how many features are in the 'cities' layer of the tileset " +
+      "test/fixtures/sample.pmtiles at zoom 3?",
   },
   {
-    name: "stepped_sequence",
-    prompt: "List the n values of a 4-row sequence that steps by 5, in ascending order.",
+    name: "fixture_maxzoom",
+    prompt: "What is the maximum zoom level of the tileset test/fixtures/sample.pmtiles?",
   },
   {
-    name: "items_per_category",
-    prompt:
-      "The items API is running at https://vgi-starter-api.query-farm.services/v1. How many items does it have in each category?",
+    name: "region_attributes",
+    prompt: "List the attribute names of the 'regions' layer in test/fixtures/sample.pmtiles, alphabetically.",
   },
 ];
 
 export const CATALOG_TAGS: Record<string, string> = {
-  "vgi.title": "VGI Mvt Worker",
-  "vgi.subtitle": "Example DuckDB functions to rename and replace: a scalar, a table function and a REST API reader.",
+  "vgi.title": "Mapbox Vector Tile Reader (TypeScript)",
+  "vgi.subtitle": "Decode PMTiles and XYZ vector tiles into DuckDB rows with GEOMETRY columns, natively or in the browser.",
   "vgi.doc_llm": CATALOG_DOC_LLM,
   "vgi.doc_md": CATALOG_DOC_MD,
   "vgi.source_url": SOURCE_URL,
   "vgi.icon_url": "https://query.farm/media-kit/products/vgi/vgi-logo.png",
   "vgi.license": "0BSD",
   "vgi.author": "Query.Farm",
-  "vgi.copyright": "Copyright 2026 Query.Farm LLC",
-  "vgi.keywords": keywordsArray("vgi, duckdb, starter template, example worker, rest api, table function"),
+  "vgi.copyright": "Copyright 2026 Query Farm LLC - https://query.farm",
+  "vgi.keywords": keywordsArray(
+    "vgi, duckdb, vector tiles, mvt, mapbox vector tile, pmtiles, xyz tiles, gis, geometry, protobuf, wasm, browser",
+  ),
   "vgi.support_contact": `${SOURCE_URL}/issues`,
   "vgi.support_policy_url": `${SOURCE_URL}#support`,
   // Public analyst tasks for `vgi-lint simulate`; private graders live in vgi-agent-tests.yaml.
@@ -139,9 +147,9 @@ export const CATALOG_TAGS: Record<string, string> = {
 };
 
 export const SCHEMA_TAGS: Record<string, string> = {
-  "vgi.title": "Mvt Functions",
-  domain: "examples",
-  "vgi.keywords": keywordsArray("greeting, sequence, generator, rest api, pagination"),
+  "vgi.title": "Vector Tile Readers",
+  domain: "geospatial",
+  "vgi.keywords": keywordsArray("vector tiles, mvt, pmtiles, read tiles, decode, layers, geometry"),
   "vgi.doc_llm": SCHEMA_DOC_LLM,
   "vgi.doc_md": SCHEMA_DOC_MD,
   "vgi.categories": JSON.stringify(SCHEMA_CATEGORIES),

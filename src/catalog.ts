@@ -1,17 +1,15 @@
 /**
  * Assemble the functions into the catalog DuckDB attaches.
  *
- * To add a function: write it (see `greet.ts` / `sequence.ts` /
- * `fetch_items.ts`), then add it to `FUNCTIONS` below.
+ * To add a function: write it (see `read_tiles.ts`), then add it to
+ * `FUNCTIONS` below.
  */
 
 import type { CatalogDescriptor, VgiFunction } from "@query-farm/vgi";
-import { API_SECRET_TYPE, fetchItems } from "./fetch_items.ts";
-import { greet, greetWithStyle } from "./greet.ts";
 import { CATALOG_DOC_MD, CATALOG_NAME, CATALOG_TAGS, SCHEMA_DOC_MD, SCHEMA_TAGS, SOURCE_URL } from "./meta.ts";
-import { sequenceTable } from "./sequence.ts";
+import { readMvt, readTiles, tilesetLayers } from "./read_tiles.ts";
 
-export const FUNCTIONS: VgiFunction[] = [greet, greetWithStyle, sequenceTable, fetchItems];
+export const FUNCTIONS: VgiFunction[] = [readTiles, readMvt, tilesetLayers];
 
 interface Example {
   description: string;
@@ -46,7 +44,6 @@ export const CATALOG: CatalogDescriptor = {
   comment: CATALOG_DOC_MD,
   sourceUrl: SOURCE_URL,
   tags: CATALOG_TAGS,
-  secretTypes: [API_SECRET_TYPE],
   schemas: [
     {
       path: ["main"],
