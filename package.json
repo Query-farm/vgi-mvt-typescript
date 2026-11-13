@@ -20,6 +20,6 @@
     "@biomejs/biome": "^2.6.6",
     "@haybarn/haybarn-wasm": "2.0.0-rc12",
     "@types/bun": "^1.3.0",
-    "typescript": "^5.9.0"
+    "typescript": "^7.0.2"
   }
 }
