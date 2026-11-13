@@ -6,13 +6,14 @@
  * [0, extent] removes the overlap: counts of pieces still exceed counts of features,
  * but summed lengths and areas are right.
  *
- * Lines use Liang–Barsky per segment, polygons Sutherland–Hodgman per ring. The
- * Python worker clips with GEOS; Sutherland–Hodgman can leave zero-width slivers
- * along the tile edge for concave rings, which don't change the area.
+ * Lines use Liang–Barsky per segment. Polygons are intersected with the tile square by
+ * polygon-clipping, which (like the Python worker's GEOS intersection) returns valid
+ * polygons: no zero-width slivers along the edge, no self-touching rings.
  * Points are kept only by the tile whose square contains them.
  */
 
-import type { Part } from "./mvt.ts";
+import polygonClipping, { type Polygon as PcPolygon } from "polygon-clipping";
+import { classifyRings, classifyRingsByNesting, type Part } from "./mvt.ts";
 
 export type TileEdges = "merge" | "clip" | "raw";
 export const TILE_EDGE_CHOICES: TileEdges[] = ["merge", "clip", "raw"];
@@ -176,4 +177,49 @@ export function clipParts(gtype: number, parts: Part[], e: number): Part[] {
     return out;
   }
   return parts;
+}
+
+const toPairs = (ring: Part): [number, number][] => {
+  const out: [number, number][] = [];
+  for (let i = 0; i + 1 < ring.length; i += 2) out.push([ring[i]!, ring[i + 1]!]);
+  return out;
+};
+
+/**
+ * A polygon feature's rings cut to the tile square [0, e] and made valid, as polygons
+ * (exterior first, then holes) in tile pixels; [] when nothing of it is inside.
+ */
+export function clipPolygons(rings: Part[], e: number, version: number): Part[][] {
+  const closed: Part[] = [];
+  for (const ring of rings) {
+    const m = ring.length;
+    const c = m >= 2 && (ring[0] !== ring[m - 2] || ring[1] !== ring[m - 1]) ? [...ring, ring[0]!, ring[1]!] : ring;
+    if (c.length >= 8) closed.push(c);
+  }
+  const grouped = version >= 2 ? classifyRings(closed) : classifyRingsByNesting(closed);
+  if (grouped.length === 0) return [];
+  const square: PcPolygon = [
+    [
+      [0, 0],
+      [e, 0],
+      [e, e],
+      [0, e],
+      [0, 0],
+    ],
+  ];
+  try {
+    const polys = grouped.map((poly) => poly.map(toPairs));
+    const out = polygonClipping.intersection(square, polygonClipping.union(polys[0]!, ...polys.slice(1)));
+    // Cut points lie on the square's edges; snap them along the edge to the REF grid,
+    // as the Python worker's GEOS intersection (grid_size=1) does.
+    const onEdge = (v: number) => v === 0 || v === e;
+    return out.map((poly) =>
+      poly.map((ring) => ring.flatMap(([px, py]) => [onEdge(py) ? snap(px, e) : px, onEdge(px) ? snap(py, e) : py])),
+    );
+  } catch {
+    // degenerate input polygon-clipping rejects: fall back to cutting each ring
+    return grouped
+      .map((poly) => poly.map((r) => clipRing(r, e)).filter((r): r is Part => r !== null && r.length >= 8))
+      .filter((poly) => poly.length > 0);
+  }
 }

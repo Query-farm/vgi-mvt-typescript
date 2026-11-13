@@ -19,7 +19,7 @@ import {
   uint64,
   utf8,
 } from "@query-farm/vgi/worker-cf";
-import { clipParts, type TileEdges } from "./edges.ts";
+import { clipParts, clipPolygons, type TileEdges } from "./edges.ts";
 import { column } from "./meta.ts";
 import {
   type Coordinates,
@@ -29,6 +29,7 @@ import {
   Projector,
   type PropertyValue,
   partsWkb,
+  polygonsWkb,
 } from "./mvt.ts";
 
 const CRS: Record<Coordinates, string | null> = { wgs84: "OGC:CRS84", web_mercator: "EPSG:3857", tile: null };
@@ -139,17 +140,35 @@ export function outputSchema(coordinates: Coordinates, extra: VgiField[] = []): 
   return schema([...baseFields(coordinates), ...extra]);
 }
 
-/** JSON.stringify that writes bigints as numbers and non-finite floats as null. */
+/**
+ * A float tile value written as Python's json.dumps writes it, so both workers emit the
+ * same text: `5.0`, `1e+16`, `1.5e-05`. Tile integers decode to bigint, so every
+ * `number` here is a float or double. Non-finite values become null.
+ */
+export function pyFloat(v: number): string {
+  if (!Number.isFinite(v)) return "null";
+  if (Object.is(v, -0)) return "-0.0";
+  const a = Math.abs(v);
+  if (a !== 0 && (a < 1e-4 || a >= 1e16)) {
+    const [mant, exp] = v.toExponential().split("e") as [string, string];
+    const sign = exp.startsWith("-") ? "-" : "+";
+    return `${mant}e${sign}${exp.replace(/^[+-]/, "").padStart(2, "0")}`;
+  }
+  const t = String(v);
+  return /[.e]/.test(t) ? t : `${t}.0`;
+}
+
+/** The feature's attributes as a JSON object, spaced like Python's json.dumps; bigints are written as integers. */
 export function propertiesJson(props: Map<string, PropertyValue>): string {
   let s = "{";
   let first = true;
   for (const [k, v] of props) {
-    if (!first) s += ",";
+    if (!first) s += ", ";
     first = false;
-    s += `${JSON.stringify(k)}:`;
+    s += `${JSON.stringify(k)}: `;
     if (v === null) s += "null";
     else if (typeof v === "bigint") s += v.toString();
-    else if (typeof v === "number") s += Number.isFinite(v) ? JSON.stringify(v) : "null";
+    else if (typeof v === "number") s += pyFloat(v);
     else s += JSON.stringify(v);
   }
   return `${s}}`;
@@ -217,6 +236,13 @@ export class RowBuilder {
     const p = new Projector(z, x, y, layer.extent, this.coordinates);
     for (const f of layer.features) {
       let parts = decodeGeometry(f.geometry);
+      if (this.edges === "clip" && f.geomType === 3) {
+        const polygons = clipPolygons(parts, layer.extent, layer.version);
+        if (polygons.length === 0) continue;
+        const [gtype, wkb] = polygonsWkb(polygons, p);
+        if (wkb !== null) this.append(layer.name, z, x, y, f.id, gtype, wkb, f.properties);
+        continue;
+      }
       if (this.edges === "clip") {
         parts = clipParts(f.geomType, parts, layer.extent);
         if (parts.length === 0) continue; // nothing of it inside this tile's square

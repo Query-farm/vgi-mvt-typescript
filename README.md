@@ -60,22 +60,26 @@ Rows carry `layer, z, x, y, feature_id, geometry_type, geometry (GEOMETRY), prop
 
 ## Compared with the Python worker
 
-Checked against vgi-mvt 0.2.2 on the same inputs (Florence basemap at z14, the test fixtures,
-the 4.66 GB Overture places archive):
+Checked feature by feature against vgi-mvt 0.2.2 on the Florence basemap at z14: every table
+of every layer in all three `tile_edges` modes (39 tables), plus the test fixtures and the
+4.66 GB Overture places archive.
 
-- `tile_edges := 'merge'` (the default): the same rows (roads 3,557, buildings 115, land use
-  1,361), the same count of each geometry type, and areas within 2e-8. Pieces are joined with
-  [polygon-clipping](https://github.com/mfogel/polygon-clipping) where Python uses GEOS; one
-  building of 115 comes back with two parts touching (`ST_MakeValid` fixes it), and total line
-  length differs by a few parts in a million, where GEOS dissolves a line that overlaps itself.
-- `'clip'`: the same rows (3,847) and ids (3,557); areas match exactly.
-- `'raw'`: identical, including vertex counts.
+- **Identical:** column names and types, row counts, feature ids, geometry types, and the
+  `properties` JSON text (floats are written as Python's `json` writes them: `5.0`, `1e+16`).
+- `'raw'`: geometries identical, vertex for vertex.
+- `'clip'`: the same pieces; lines lie within 0.5 m of Python's, and each polygon piece's
+  symmetric difference from Python's is at most 2.4e-7 of its area. Polygons are cut with
+  [polygon-clipping](https://github.com/mfogel/polygon-clipping) where Python uses GEOS, and
+  cut points snap to the same 1/16-pixel grid.
+- `'merge'` (the default): the same features, areas within 3e-4 of each feature's (a vertex
+  one grid step, about 3 cm, away). Vertex counts are lower: GEOS keeps collinear points on
+  tile edges and adds a node where a line crosses itself, polygon-clipping doesn't.
+- One building of 115, a 421-part multipolygon, comes back with two parts touching
+  (`ST_IsValid` false, `ST_MakeValid` fixes it); its area matches Python's to 1e-13.
 - Pushdown: `WHERE ST_Intersects(geometry, ST_MakeEnvelope(11.24, 43.76, 11.27, 43.78))` on the
   Overture archive reads only the tiles under the box and returns the same counts.
-
-- `ATTACH ... tileset`: the same tables, columns, comments and errors; Florence at zoom 14
-  gives the same roads (3,557) and building area, and `test/sql/attach.test` is Python's
-  `attach.test` with MBTiles swapped for the PMTiles fixture.
+- `ATTACH ... tileset`: the same tables, columns, comments and errors, and
+  `test/sql/attach.test` is Python's `attach.test` with MBTiles swapped for the PMTiles fixture.
 
 Not ported yet: `mvt_decode`, `tileset_metadata`, MBTiles
 and the `COPY ... TO (FORMAT 'mvt.pmtiles')` writer.

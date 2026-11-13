@@ -59,7 +59,17 @@ test("properties JSON keeps 64-bit integers exact", () => {
     ["nan", Number.NaN],
     ["s", 'a"b'],
   ]);
-  expect(propertiesJson(props)).toBe('{"big":9007199254740993,"f":1.5,"nan":null,"s":"a\\"b"}');
+  expect(propertiesJson(props)).toBe('{"big": 9007199254740993, "f": 1.5, "nan": null, "s": "a\\"b"}');
+  expect(
+    propertiesJson(
+      new Map([
+        ["h", 5],
+        ["e", 1e16],
+        ["t", 1.5e-5],
+        ["z", -0],
+      ]),
+    ),
+  ).toBe('{"h": 5.0, "e": 1e+16, "t": 1.5e-05, "z": -0.0}');
 });
 
 test("hilbert tile ids: spec values and round trips", () => {
