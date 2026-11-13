@@ -6,7 +6,7 @@ FROM oven/bun:1.3-slim
 
 ARG VERSION=0.0.0
 ARG GIT_COMMIT=unknown
-LABEL org.opencontainers.image.title="vgi-mvt-worker" \
+LABEL org.opencontainers.image.title="vgi-mvt-typescript-worker" \
       org.opencontainers.image.description="A VGI worker for DuckDB" \
       org.opencontainers.image.source="https://github.com/your-org/vgi-mvt" \
       org.opencontainers.image.version="${VERSION}" \

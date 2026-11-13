@@ -32,7 +32,7 @@ jobs:
     uses: Query-farm/vgi-actions/.github/workflows/docker-publish.yml@v1
     secrets: inherit
     with:
-      image_name: vgi-mvt-worker
+      image_name: vgi-mvt-typescript-worker
       # Nothing to language-import in a Bun image; the /health boot smoke still runs.
       smoke_import: ""
       health_port: "8000"
