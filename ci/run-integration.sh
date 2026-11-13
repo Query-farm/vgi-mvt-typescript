@@ -117,6 +117,9 @@ INSTALL httpfs FROM core;
 
 statement ok
 INSTALL json FROM core;
+
+statement ok
+INSTALL spatial FROM core;
 EOF
 "$HAYBARN_UNITTEST" --keep-home --test-dir "$STAGE" "test/_warm.test" >/dev/null 2>&1 \
   || echo "::warning::extension warm-up did not fully succeed"
