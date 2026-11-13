@@ -1,4 +1,15 @@
-# vgi-mvt-typescript
+<p align="center">
+  <img src="https://query.farm/media-kit/products/vgi/vgi-logo.png" alt="Vector Gateway Interface (VGI)" width="320">
+</p>
+
+<p align="center"><em>A Query.Farm VGI worker for DuckDB.</em></p>
+
+# Query Mapbox Vector Tiles & PMTiles in DuckDB, Natively or in the Browser
+
+> **vgi-mvt-typescript** · a [Query.Farm](https://query.farm) VGI worker · written in TypeScript
+
+[![CI](https://github.com/Query-farm/vgi-mvt-typescript/actions/workflows/ci.yml/badge.svg)](https://github.com/Query-farm/vgi-mvt-typescript/actions/workflows/ci.yml)
+[![vgi worker: query.farm](https://query.farm/media-kit/shields/vgi-worker.svg)](https://query.farm)
 
 A TypeScript port of [vgi-mvt](https://github.com/Query-farm/vgi-mvt)'s vector tile reader, so
 the same worker runs natively (Bun, over stdio/launch/HTTP) **and inside a browser tab** next to
@@ -100,3 +111,10 @@ Haybarn's threads engine, before the worker starts; real Safari is fine, so test
 
 `make check` is the gate: Biome, `tsc`, unit tests, the SQL suite over stdio, launch and HTTP
 (offline, against `test/fixtures` and a range-capable fixture server), and vgi-lint.
+
+## Authorship & License
+
+Written by [Query.Farm](https://query.farm). Released under the BSD Zero Clause License
+(see [LICENSE](LICENSE)).
+
+Copyright 2026 Query Farm LLC - https://query.farm
