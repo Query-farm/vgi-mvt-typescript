@@ -13,7 +13,13 @@
 import { CATALOG } from "./catalog.ts";
 import { serve } from "./cli.ts";
 import { CATALOG_DOC_LLM, SOURCE_URL, VERSION } from "./meta.ts";
+import { TilesetCatalog } from "./tileset_catalog.ts";
 
 if (import.meta.main) {
-  serve(CATALOG, { version: VERSION, doc: CATALOG_DOC_LLM, repositoryUrl: SOURCE_URL });
+  serve(CATALOG, {
+    version: VERSION,
+    doc: CATALOG_DOC_LLM,
+    repositoryUrl: SOURCE_URL,
+    catalogInterface: (catalog, registry) => new TilesetCatalog(catalog, registry),
+  });
 }

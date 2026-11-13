@@ -23,6 +23,30 @@ Natively it attaches like any worker:
 ATTACH 'mvt' (TYPE vgi, LOCATION '/abs/path/to/bin/vgi-mvt-worker');
 ```
 
+## Attach a tileset as a database
+
+With a `tileset` option, each layer of the archive becomes a table and each layer attribute a
+typed column, as in the Python worker:
+
+```sql
+ATTACH 'worker:mvt-worker.js' AS florence (TYPE vgi,
+  tileset 'https://raw.githubusercontent.com/protomaps/PMTiles/main/spec/v3/protomaps(vector)ODbL_firenze.pmtiles');
+
+SELECT "pmap:kind" AS kind, count(*) AS roads FROM florence.roads GROUP BY kind ORDER BY roads DESC;
+```
+
+| ATTACH option | Default | Meaning |
+|---|---|---|
+| `tileset` | (none) | PMTiles URL (or local path under Bun). Without it you get only the functions. |
+| `zoom` | the tileset's max zoom | Zoom level every layer table reads. |
+| `bbox` | whole tileset | `'west,south,east,north'` in degrees: every table reads only the tiles covering it. |
+| `coordinates` | `'wgs84'` | `'web_mercator'` or `'tile'` instead. |
+| `max_tiles` | 10000 | A table scan fails rather than read more tiles than this. |
+| `tile_edges` | `'merge'` | `'merge'`, `'clip'` or `'raw'`, as for `read_tiles`. |
+
+A table scan is redirected to `read_tiles`, so `WHERE ST_Intersects(geometry, <constant>)`
+pushdown works on the tables too.
+
 ## Functions
 
 | Function | What it does |
@@ -49,7 +73,11 @@ the 4.66 GB Overture places archive):
 - Pushdown: `WHERE ST_Intersects(geometry, ST_MakeEnvelope(11.24, 43.76, 11.27, 43.78))` on the
   Overture archive reads only the tiles under the box and returns the same counts.
 
-Not ported yet: `ATTACH ... tileset` catalog tables, `mvt_decode`, `tileset_metadata`, MBTiles
+- `ATTACH ... tileset`: the same tables, columns, comments and errors; Florence at zoom 14
+  gives the same roads (3,557) and building area, and `test/sql/attach.test` is Python's
+  `attach.test` with MBTiles swapped for the PMTiles fixture.
+
+Not ported yet: `mvt_decode`, `tileset_metadata`, MBTiles
 and the `COPY ... TO (FORMAT 'mvt.pmtiles')` writer.
 
 ## Demo

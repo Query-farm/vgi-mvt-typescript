@@ -14,6 +14,10 @@ const OVERTURE = "https://r2-public.protomaps.com/protomaps-sample-datasets/over
 
 export const EXAMPLES: { title: string; sql: string }[] = [
   {
+    title: "Attach the Florence basemap as a database: one table per layer",
+    sql: `ATTACH IF NOT EXISTS 'worker:mvt-worker.js' AS florence (TYPE vgi,\n  tileset '${FLORENCE}');\n\nSELECT "pmap:kind" AS kind, count(*) AS roads\nFROM florence.roads\nGROUP BY kind ORDER BY roads DESC;`,
+  },
+  {
     title: "Layers of the Florence basemap",
     sql: `SELECT layer, count(*) AS attributes\nFROM mvt.main.tileset_layers('${FLORENCE}')\nGROUP BY layer ORDER BY layer;`,
   },

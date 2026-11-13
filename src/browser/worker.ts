@@ -12,17 +12,18 @@
  * of DuckDB's connections share one set of open tilesets and directory caches.
  */
 
-import { FunctionRegistry, ReadOnlyCatalogInterface } from "@query-farm/vgi/worker-cf";
+import { FunctionRegistry } from "@query-farm/vgi/worker-cf";
 import { serveStream } from "@query-farm/vgi-rpc";
 // buildVgiProtocol isn't exported from a browser-safe entry yet (the root entry pulls in
 // Node transports), so import its module directly. Remove once worker-cf exports it.
 import { buildVgiProtocol } from "../../node_modules/@query-farm/vgi/src/protocol/dispatch.ts";
 import { CATALOG } from "../catalog.ts";
+import { TilesetCatalog } from "../tileset_catalog.ts";
 import { openChannel, serveChannel } from "./sab.ts";
 
 const registry = new FunctionRegistry();
 for (const schema of CATALOG.schemas) for (const fn of schema.functions ?? []) registry.register(fn);
-const catalogInterface = new ReadOnlyCatalogInterface(CATALOG, registry);
+const catalogInterface = new TilesetCatalog(CATALOG, registry);
 const protocol = buildVgiProtocol({ registry, catalogInterface, catalogName: CATALOG.name });
 
 const post = (m: unknown) => (self as unknown as { postMessage(x: unknown): void }).postMessage(m);
