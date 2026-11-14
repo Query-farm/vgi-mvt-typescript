@@ -28,7 +28,15 @@ FROM mvt.main.read_tiles('https://raw.githubusercontent.com/protomaps/PMTiles/ma
 GROUP BY kind ORDER BY roads DESC;
 ```
 
-Natively it attaches like any worker:
+Natively it attaches like any worker. The signed release binary resolves straight from GitHub:
+
+```sql
+ATTACH 'mvt' (TYPE vgi, LOCATION 'github-auto://Query-farm/vgi-mvt-typescript@v0.1.0');
+```
+
+Prebuilt binaries cover macOS (Apple silicon), Linux (x86-64 and arm64) and Windows (x86-64).
+`github-auto://` needs an explicit release tag; change `@v0.1.0` to move to a newer release.
+A local build attaches by path:
 
 ```sql
 ATTACH 'mvt' (TYPE vgi, LOCATION '/abs/path/to/bin/vgi-mvt-worker');
