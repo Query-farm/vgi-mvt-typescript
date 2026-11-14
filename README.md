@@ -118,3 +118,7 @@ Written by [Query.Farm](https://query.farm). Released under the BSD Zero Clause 
 (see [LICENSE](LICENSE)).
 
 Copyright 2026 Query Farm LLC - https://query.farm
+
+## Executed notebook
+
+[Measure tile buffer overlap](notebooks/README.md) compares synthetic geometry and projected measurements under raw, clipped and merged edge policies through SQL.
