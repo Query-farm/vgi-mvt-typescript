@@ -245,3 +245,30 @@ statement error
 SELECT * FROM mvt.main.read_tiles('{MVT_FIXTURES}/sample.pmtiles', coordinates := 'lambert');
 ----
 <REGEX>:.*
+
+# ---------------------------------------------------------------- composed queries
+
+# Two layers of one tileset in a spatial join: only Milan lies in a region (the square, outside its hole).
+query TT
+SELECT c.name, r.code FROM mvt.main.read_tiles('{MVT_FIXTURES}/sample.pmtiles', layer := 'cities') AS c
+LEFT JOIN mvt.main.read_tiles('{MVT_FIXTURES}/sample.pmtiles', layer := 'regions') AS r ON ST_Within(c.geometry, r.geometry)
+ORDER BY c.name;
+----
+Berlin	NULL
+Milan	A
+Paris	NULL
+Vienna	NULL
+
+# The metadata's declared attributes joined to the features of a standalone tile.
+query TTII
+SELECT t.layer, t.field, count(f.layer), count(f.properties->>t.field)
+FROM mvt.main.tileset_layers('{MVT_FIXTURES}/sample.pmtiles') AS t
+LEFT JOIN mvt.main.read_mvt('{MVT_FIXTURES}/0-0-0.mvt', 0, 0, 0) AS f ON f.layer = t.layer
+GROUP BY t.layer, t.field ORDER BY t.layer, t.field;
+----
+cities	capital	4	4
+cities	name	4	4
+cities	population	4	4
+regions	area_rank	2	2
+regions	code	2	2
+regions	label	2	2

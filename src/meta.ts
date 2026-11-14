@@ -127,6 +127,14 @@ export const AGENT_TEST_TASKS = [
     name: "region_attributes",
     prompt: "List the attribute names of the 'regions' layer in test/fixtures/sample.pmtiles, alphabetically.",
   },
+  {
+    name: "cities_per_region",
+    prompt:
+      "In the tileset test/fixtures/sample.pmtiles (at its default zoom), how many features of the " +
+      "'cities' layer lie inside each polygon of the 'regions' layer? Return one row per region, " +
+      "including regions with none, with columns code (the region's code attribute, VARCHAR) and " +
+      "cities (BIGINT), ordered by code.",
+  },
 ];
 
 export const CATALOG_TAGS: Record<string, string> = {

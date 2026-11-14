@@ -13,3 +13,10 @@ tasks:
   - name: region_attributes
     reference_sql: >-
       SELECT field FROM mvt.main.tileset_layers('test/fixtures/sample.pmtiles') WHERE layer = 'regions' ORDER BY field
+  - name: cities_per_region
+    reference_sql: >-
+      SELECT r.code, count(c.name) AS cities
+      FROM mvt.main.read_tiles('test/fixtures/sample.pmtiles', layer := 'regions') AS r
+      LEFT JOIN mvt.main.read_tiles('test/fixtures/sample.pmtiles', layer := 'cities') AS c
+      ON ST_Within(c.geometry, r.geometry)
+      GROUP BY r.code ORDER BY r.code

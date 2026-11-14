@@ -8,6 +8,7 @@ import { clipLine, clipParts, clipRing } from "../src/edges.ts";
 import { lineMerge } from "../src/merge.ts";
 import { decodeGeometry, decodeTile, featureWkb, maybeDecompress, Projector, tileRange } from "../src/mvt.ts";
 import { clampToWorld, intersect, pushedBBox, wkbEnvelope } from "../src/pushdown.ts";
+import { readTiles } from "../src/read_tiles.ts";
 import { propertiesJson } from "../src/rows.ts";
 import { parseDirectory, tileIdToZxy, zxyToTileId } from "../src/sources.ts";
 
@@ -218,6 +219,15 @@ describe("against the worker", () => {
   test("read_tiles: features per layer", async () => {
     const rows = await table("read_tiles", [fixture("sample.pmtiles")], { zoom: 2 });
     expect(countBy(rows, "layer")).toEqual({ cities: 4, regions: 2 });
+  });
+
+  test("read_tiles: the per-layer executable example expects what the worker returns", async () => {
+    // It once expected 4 regions: the raw tile count, not the merged features read_tiles returns.
+    const examples: { expected_result: [string, number][] }[] = JSON.parse(
+      readTiles.meta.tags?.["vgi.executable_examples"] ?? "[]",
+    );
+    const rows = await table("read_tiles", [fixture("sample.pmtiles")], { zoom: 2 });
+    expect(Object.fromEntries(examples[0]?.expected_result ?? [])).toEqual(countBy(rows, "layer"));
   });
 
   test("read_tiles: layer adds typed columns", async () => {

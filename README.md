@@ -69,6 +69,26 @@ pushdown works on the tables too.
 Rows carry `layer, z, x, y, feature_id, geometry_type, geometry (GEOMETRY), properties (JSON)`;
 `layer := '<name>'` adds a typed column per attribute.
 
+The functions combine like any table: join two layers of a tileset spatially, or set what the
+metadata declares beside what the tiles hold.
+
+```sql
+-- The region polygon (if any) each city of the test fixture lies in: only Milan, in region A.
+SELECT c.name, c.population, r.code AS region
+FROM mvt.main.read_tiles('test/fixtures/sample.pmtiles', layer := 'cities') AS c
+LEFT JOIN mvt.main.read_tiles('test/fixtures/sample.pmtiles', layer := 'regions') AS r
+  ON ST_Within(c.geometry, r.geometry)
+ORDER BY c.name;
+
+-- Each layer's declared attributes next to its feature count at the max zoom.
+WITH declared AS (
+  SELECT layer, string_agg(field, ', ' ORDER BY field) AS attributes
+  FROM mvt.main.tileset_layers('test/fixtures/sample.pmtiles') GROUP BY layer)
+SELECT d.layer, d.attributes, count(*) AS features
+FROM declared AS d JOIN mvt.main.read_tiles('test/fixtures/sample.pmtiles') AS f USING (layer)
+GROUP BY ALL ORDER BY d.layer;
+```
+
 ## Compared with the Python worker
 
 Checked feature by feature against vgi-mvt 0.2.2 on the Florence basemap at z14: every table
