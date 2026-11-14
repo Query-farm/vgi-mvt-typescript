@@ -1,42 +1,70 @@
-# Map tile measurements through VGI
+# Vector Tile Reader examples
 
-[01 — Measure tile buffer overlap](01_measure_tile_buffer_overlap.ipynb) compares synthetic roads and polygons read with raw, clipped and merged edge handling. The saved default is raw; the experiment changes only the policy to merge. SQL performs all decoding, spatial measures and comparisons; Python plots returned geometry.
+Two executed stories use the public native **v0.1.0** TypeScript worker:
 
-## Run from this directory alone
+- [How much do tile buffers inflate a measurement?](01_measure_tile_buffer_overlap.ipynb) compares raw pieces with a clipped reference, then changes `TILE_EDGES` from `raw` to `merge`. It also reconciles declared attributes and directly attached layer tables.
+- [Valid geometry can still be in the wrong place](02_valid_geometry_wrong_tile_address.ipynb) decodes identical bytes using a deliberately wrong XYZ column and the recorded reference. Change `ASSIGNED_X` from 1 to 2 to restore the recorded address.
 
-Prerequisites: Python 3.13 or 3.14, uv, Git, and **Bun 1.3.14** on PATH. Internet access is required to obtain the pinned public worker, frozen Bun packages, Python environment and signed VGI/spatial extensions. Subsequent data reads use only the bundled synthetic archive. No account or API credentials are used.
+The fixtures are unchanged GDAL repository test outputs. They contain invented roads/areas and city records with fixture/historical attribute values, **not observed infrastructure or a current place dataset**. [Provenance](fixtures/provenance.json) records released paths, sizes and SHA-256 hashes. The input tile in the second story is already quantized and has known XYZ address 2/2/1.
 
-```sh
-cd notebooks
-uv sync --frozen
-uv run --frozen python execute.py
-uv run --frozen python execute.py --parameters '{"TILE_EDGES":"merge"}' --output-dir artifacts/experiment
+## Run from this folder or a single notebook
+
+Install [uv](https://docs.astral.sh/uv/) and Git, then:
+
+```bash
+uv sync --locked
+uv run --locked vgi-notebooks 01_measure_tile_buffer_overlap.ipynb
+uv run --locked vgi-notebooks 02_valid_geometry_wrong_tile_address.ipynb
 ```
 
-For Jupyter, select `notebooks/.venv/bin/python` as the interpreter, or register it explicitly:
+The notebook lock pins shared **v0.3.32** with `[runner]` for local execution. Each Colab badge opens a single file whose conditional bootstrap installs only the base shared package. `prepare("mvt-typescript")` downloads seven companion files from immutable public commit `d9af054ead71bdcbdc28d2928112b260736ecb80` and verifies their hashes. No parent worker checkout, root virtual environment, Bun installation or build is required.
 
-```sh
-uv run --frozen python -m ipykernel install --user --name vgi-mvt-typescript-notebooks --display-name "Python (vgi-mvt-typescript notebooks)"
+The actual connection remains visible:
+
+```sql
+INSTALL vgi FROM community;
+LOAD vgi;
+INSTALL spatial;
+LOAD spatial;
+ATTACH 'mvt' (TYPE vgi, LOCATION 'github-auto://Query-farm/vgi-mvt-typescript@v0.1.0');
 ```
 
-The runner uses a temporary kernel specification and notebook-directory cwd. It atomically saves only successful runs, rejects unknown overrides, and requires a separate output directory for overrides. Experiment directories contain all fixtures, helpers, assets and environment instructions. Failure leaves the last successful source notebook untouched. `artifacts/`, environments and generated logs are ignored.
+The launcher selects the host-platform asset and validates its published checksum before caching the executable. Release v0.1.0 and current public source both resolve to `85aded6d7319f72ec4f37138c728fa3302382743`. The notebook engine is published Haybarn 2.0.0rc11. Initial shared-package, release and extension retrieval needs internet; analysis reads local immutable fixtures only. Shared setup opens an empty temporary SQL-secret directory with persistent secrets disabled before ATTACH; cleanup verifies the inventory and closes the session.
 
-## Worker and data pins
+**Validation download limitation:** the anonymous cold GitHub API request returned HTTP 403 from its rate limit. Validation downloaded the actual pinned release using existing GitHub authentication confined to a test subprocess, then executed notebooks anonymously from the verified cache. A separate empty-cache anonymous retry also returned 403. No token appears in these notebooks, setup files or outputs. Cold anonymous download is not claimed successful while throttled; a first run needs GitHub API access below its rate limit or the launcher's supported authenticated environment. This is separate from SQL-secret isolation.
 
-Visible SQL uses `LOCATION 'python3 worker_launcher.py'`. The launcher fetches unchanged public revision **b1d8396c360d6db194ab45abf1749c5938143e89** from [Query-farm/vgi-mvt-typescript](https://github.com/Query-farm/vgi-mvt-typescript/tree/b1d8396c360d6db194ab45abf1749c5938143e89), installs its original `bun.lock` with `--frozen-lockfile`, verifies tracked worker source and Git HEAD on reuse, and executes `src/worker.ts`. No local worker installation or engine build is involved. Haybarn is separately pinned to **2.0.0rc11** in this directory's lockfile. The worker SDK remains at its source revision's tested TypeScript constraints.
+For an editor, register and select the local environment:
 
-A bounded 180-second directory lock serializes cold installs, which are published by atomic rename. To clear the cache, stop every running notebook first, then remove `artifacts/worker-*`; remove a stale `.lock` directory only after ensuring no launcher is active. Upgrading the source revision, Bun or engine requires rerunning all default/experiment and source checks; do not edit only one pin and assume compatibility.
+```bash
+uv run --locked python -m ipykernel install --user --name mvt-typescript-examples \
+  --display-name "Python (vgi-mvt-typescript notebooks)"
+```
 
-`fixtures/edges.pmtiles` and its two source GeoJSON companions are copied byte-for-byte from the pinned revision's `test/fixtures/`. They are authored synthetic test data, not a public geographical survey. The source GeoJSON documents intended shapes; notebook measurements use only the actual worker-decoded archive, including its quantization. SHA-256:
+Restart and Run All after changing parameters. Setup/presentation code is folded. Native SVG and exact image-link SVG files support standalone notebook and GitHub rendering. All analytical geometry and measurements are visible SQL; Python draws returned geometry and formats returned numbers.
 
-- `edges.pmtiles`: `304713286a01292458da750741a1c9b1f5bac9e0923153788540ce27a60eb698`
-- `edges_areas.geojson`: `876371d0a4d65ea75c178d1185179550aba97515891e9be7919137587375ef99`
-- `edges_roads.geojson`: `288a021c3b38ff18e23d1406ae5143d4be759fa7a043be08fee83fe241d77288`
+## Separate experiments
 
-## Interpretation and validation
+```bash
+uv run --locked vgi-notebooks 01_measure_tile_buffer_overlap.ipynb \
+  --parameters '{"TILE_EDGES":"merge"}' --output-dir artifacts/merge
+uv run --locked vgi-notebooks 02_valid_geometry_wrong_tile_address.ipynb \
+  --parameters '{"ASSIGNED_X":2}' --output-dir artifacts/correct-address
+```
 
-`raw` retains buffered tile copies; `clip` keeps each tile's piece; `merge` joins pieces. Counts are piece counts, and `(layer, name)` is a known identity key only in this fixture. Coordinates use EPSG:3857. Kilometres and square kilometres are **projected**, not ground/geodesic measures. Small merged line-length differences can arise from edge snapping; the notebook does not claim exact equivalence with clip.
+The runner requires a separate output directory for overrides, preserves the saved default and carries experiment branding/documentation. Reset defaults to `raw` and 1 respectively.
 
-Validation results are recorded after running the default, a standalone cold-cache copy and the focused merge experiment, visually reviewing all four default/experiment charts, checking runner guards and running the repository's `make check`.
+The edge-policy experiment retains the archive, zoom 3, selected feature identities and clipped reference. It changes returned piece counts and measured overlap. Unique layer/name keys belong to this four-feature fixture; they are not universal IDs. Merge may snap line endpoints, so clipped/merged lengths are compared within a stated 0.1% tolerance instead of assumed identical. Every archive read has `max_tiles=64`.
 
-Validated on macOS arm64 with Bun 1.3.14: default 2.6 s; detached empty-cache default 21.4 s; detached merge experiment 2.4 s. Both runs pass nine SQL invariants and render two reviewed charts. Raw returns nine pieces versus merge four; raw Four tiles area is +20.1904% above clip, while merge area agrees and Diagonal length differs by -0.0045%. Three runner rejection/preservation guards and two simultaneous cold-cache worker starts passed. `make check` passed: Biome, TypeScript, 26 Bun tests, 268 stdio + 268 launch + 232 HTTP SQL assertions, and metadata 100/100 L2 with zero findings. Notebook structural review and helper Ruff checks passed. Root source, tests and Bun lock are unchanged.
+The address experiment retains the exact raw tile bytes, six property objects and valid geometries while correcting the supplied X column. At zoom 2, one column spans 90° longitude and one quarter of the Web Mercator world width. Both X=1 and X=2 are syntactically legal, but only X=2 matches this fixture's provenance. Geometry validity does not establish correct geographic placement. The city labels are fixture values, not a mechanism for inferring the tile address.
+
+Lengths/areas are planar EPSG:3857 comparisons, **not ground distances, geodesic areas or location-accuracy estimates**. The address plot uses longitude/latitude schematically without a basemap and a separate signed projected-displacement axis. Original encoding quantization and projection distortion remain outside these controls.
+
+## Catalog and validation evidence
+
+The actual unconfigured catalog exposes **three fixed functions**: `read_tiles`, `read_mvt` and `tileset_layers`, with no COPY formats or static tables. Selecting `edges.pmtiles` adds typed `areas` and `roads` tables. The first story reads both and reconciles their complete geometry/name multisets with the selected function; metadata declarations are compared with populated attributes.
+
+[coverage.json](coverage.json) records **5/5 for this explicitly selected fixture configuration**, including **3/3 fixed functions**. Future archives can expose different names and columns; this is not a global static denominator for arbitrary data. Complete runtime function/table/view inventories, arguments and output/table DESCRIBE schemas are in [coverage/](coverage/). Release and current snapshots use the same peeled source revision because the tag and public main are identical; there is no substituted local build.
+
+Defaults, detached single-parameter experiments, six overwrite/parameter guards, all rendered figures and a fresh notebook-only bootstrap with eight libraries preloaded are checked. The latter is a compatible Python 3.12 kernel test; hosted Colab itself is not manually operated. The verified native release cache is shared by these runs; companion retrieval starts cold in the detached directories.
+
+Worker source and root locks are unchanged. This notebook-only publication reuses [green source CI](https://github.com/Query-farm/vgi-mvt-typescript/actions/runs/43614805268), with no repeated source build, full transport suite or deployment. See the [shared standard](STANDARD.md).

@@ -1,0 +1,242 @@
+{
+  "schema_version": 1,
+  "catalogs": {
+    "released": {
+      "path": "coverage/catalog-released.json",
+      "sha256": "87b7475f5cd10cb6d7c8eaf85fbb51549a61dfa31c441b0e13ce6ddacf9ee02d",
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_earthquakes",
+        "reviewed_at": "2026-11-14T23:15:49.618509+00:00",
+        "catalog_sha256": "87b7475f5cd10cb6d7c8eaf85fbb51549a61dfa31c441b0e13ce6ddacf9ee02d",
+        "notes": "Complete actual pinned native release catalog: three fixed functions plus areas/roads for explicitly selected edges.pmtiles configuration. Full inventories, arguments/output DESCRIBE and emptyCOPYregistry retained. Release tag and public current are same peeledSHA85aded6; both snapshots use that exact revision. Arbitrary future archives can expose different layer names/schema; no invented universal denominator."
+      }
+    },
+    "current": {
+      "path": "coverage/catalog-current.json",
+      "sha256": "87b7475f5cd10cb6d7c8eaf85fbb51549a61dfa31c441b0e13ce6ddacf9ee02d",
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_earthquakes",
+        "reviewed_at": "2026-11-14T23:15:49.618509+00:00",
+        "catalog_sha256": "87b7475f5cd10cb6d7c8eaf85fbb51549a61dfa31c441b0e13ce6ddacf9ee02d",
+        "notes": "Complete actual pinned native release catalog: three fixed functions plus areas/roads for explicitly selected edges.pmtiles configuration. Full inventories, arguments/output DESCRIBE and emptyCOPYregistry retained. Release tag and public current are same peeledSHA85aded6; both snapshots use that exact revision. Arbitrary future archives can expose different layer names/schema; no invented universal denominator."
+      }
+    }
+  },
+  "notebooks": [
+    {
+      "path": "01_measure_tile_buffer_overlap.ipynb",
+      "sha256": "204062465c2e490549f43cfa8d7e797da6d6ee81d3eb3e8765635242b3278b2d",
+      "execution": {
+        "path": "coverage/run-01.json",
+        "sha256": "c5cbac1cbbf1fbe8f06cd6c27590838d5197b02da99b241e158fdcac635e44dd"
+      }
+    },
+    {
+      "path": "02_valid_geometry_wrong_tile_address.ipynb",
+      "sha256": "72814a31e401c604d2a3f6b43a3a5bd0590deb328f3f769e1065aa97d99a2112",
+      "execution": {
+        "path": "coverage/run-02.json",
+        "sha256": "672dd6dc656c5eeb06f3d778c9839fa6b3f3a9e7ac327a3425f07b5a24a5c7a5"
+      }
+    }
+  ],
+  "examples": [
+    {
+      "object": {
+        "schema": "main",
+        "name": "tileset_layers"
+      },
+      "notebook": "01_measure_tile_buffer_overlap.ipynb",
+      "sql": [
+        {
+          "cell": "connection",
+          "reference": "mvt.main.tileset_layers"
+        }
+      ],
+      "narrative_cells": [
+        "schema-story",
+        "launch-story"
+      ],
+      "result_cells": [
+        "schema-finding"
+      ],
+      "interpretation_cells": [
+        "schema-finding",
+        "schema-story"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_earthquakes",
+        "reviewed_at": "2026-11-14T23:15:49.618509+00:00",
+        "notebook_sha256": "204062465c2e490549f43cfa8d7e797da6d6ee81d3eb3e8765635242b3278b2d",
+        "catalog_sha256": [
+          "87b7475f5cd10cb6d7c8eaf85fbb51549a61dfa31c441b0e13ce6ddacf9ee02d",
+          "87b7475f5cd10cb6d7c8eaf85fbb51549a61dfa31c441b0e13ce6ddacf9ee02d"
+        ],
+        "purpose": "Compare metadata field declarations with populated attribute values instead of treating them as feature counts.",
+        "finding": "Three declared fields across two layers remain visible, with returned-row/populated-value counts. No missing field is dropped; typed layer tables are scoped to the selected fixture."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "read_tiles"
+      },
+      "notebook": "01_measure_tile_buffer_overlap.ipynb",
+      "sql": [
+        {
+          "cell": "read-query",
+          "reference": "mvt.main.read_tiles"
+        }
+      ],
+      "narrative_cells": [
+        "read-story",
+        "measure-story",
+        "map-story",
+        "experiment-story"
+      ],
+      "result_cells": [
+        "comparison-finding",
+        "map-chart",
+        "comparison-chart",
+        "checks-finding"
+      ],
+      "interpretation_cells": [
+        "comparison-finding",
+        "comparison-story",
+        "experiment-story"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_earthquakes",
+        "reviewed_at": "2026-11-14T23:15:49.618509+00:00",
+        "notebook_sha256": "204062465c2e490549f43cfa8d7e797da6d6ee81d3eb3e8765635242b3278b2d",
+        "catalog_sha256": [
+          "87b7475f5cd10cb6d7c8eaf85fbb51549a61dfa31c441b0e13ce6ddacf9ee02d",
+          "87b7475f5cd10cb6d7c8eaf85fbb51549a61dfa31c441b0e13ce6ddacf9ee02d"
+        ],
+        "purpose": "Separate buffered piece counts and per-feature planar measures from the fixed clipped reference.",
+        "finding": "Same archive at zoom3 read once for selected and clip policies with64tilebound. Raw\u2192merge reduces9\u21924selectedrows while four fixture keys and the clipped reference remain. Relativearea/length differences are separate, with explicit0.1%merge tolerance and no ground-measure claim."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "areas"
+      },
+      "notebook": "01_measure_tile_buffer_overlap.ipynb",
+      "sql": [
+        {
+          "cell": "attached-query",
+          "reference": "fixture_layers.main.areas"
+        }
+      ],
+      "narrative_cells": [
+        "schema-story",
+        "read-story"
+      ],
+      "result_cells": [
+        "schema-finding",
+        "checks-finding"
+      ],
+      "interpretation_cells": [
+        "schema-finding",
+        "schema-story"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_earthquakes",
+        "reviewed_at": "2026-11-14T23:15:49.618509+00:00",
+        "notebook_sha256": "204062465c2e490549f43cfa8d7e797da6d6ee81d3eb3e8765635242b3278b2d",
+        "catalog_sha256": [
+          "87b7475f5cd10cb6d7c8eaf85fbb51549a61dfa31c441b0e13ce6ddacf9ee02d",
+          "87b7475f5cd10cb6d7c8eaf85fbb51549a61dfa31c441b0e13ce6ddacf9ee02d"
+        ],
+        "purpose": "Check direct typed catalog tables return the selected policy\u2019s full fragment multiset.",
+        "finding": "Actual fixture_layers.areas read is compared with function output using layer/name/geometry WKB and EXCEPT ALL. Repeated fragments retained; zerodifferingrows in bothraw andmerge. This covers only the documented archive configuration."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "roads"
+      },
+      "notebook": "01_measure_tile_buffer_overlap.ipynb",
+      "sql": [
+        {
+          "cell": "attached-query",
+          "reference": "fixture_layers.main.roads"
+        }
+      ],
+      "narrative_cells": [
+        "schema-story",
+        "read-story"
+      ],
+      "result_cells": [
+        "schema-finding",
+        "checks-finding"
+      ],
+      "interpretation_cells": [
+        "schema-finding",
+        "schema-story"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_earthquakes",
+        "reviewed_at": "2026-11-14T23:15:49.618509+00:00",
+        "notebook_sha256": "204062465c2e490549f43cfa8d7e797da6d6ee81d3eb3e8765635242b3278b2d",
+        "catalog_sha256": [
+          "87b7475f5cd10cb6d7c8eaf85fbb51549a61dfa31c441b0e13ce6ddacf9ee02d",
+          "87b7475f5cd10cb6d7c8eaf85fbb51549a61dfa31c441b0e13ce6ddacf9ee02d"
+        ],
+        "purpose": "Check direct typed catalog tables return the selected policy\u2019s full fragment multiset.",
+        "finding": "Actual fixture_layers.roads read is compared with function output using layer/name/geometry WKB and EXCEPT ALL. Repeated fragments retained; zerodifferingrows in bothraw andmerge. This covers only the documented archive configuration."
+      }
+    },
+    {
+      "object": {
+        "schema": "main",
+        "name": "read_mvt"
+      },
+      "notebook": "02_valid_geometry_wrong_tile_address.ipynb",
+      "sql": [
+        {
+          "cell": "read-query",
+          "reference": "mvt.main.read_mvt"
+        }
+      ],
+      "narrative_cells": [
+        "question",
+        "parameter-story",
+        "read-story",
+        "shift-story",
+        "experiment-story"
+      ],
+      "result_cells": [
+        "population-finding",
+        "shift-finding",
+        "address-chart",
+        "checks-finding"
+      ],
+      "interpretation_cells": [
+        "population-finding",
+        "shift-finding",
+        "experiment-story"
+      ],
+      "review": {
+        "status": "approved",
+        "reviewer": "Codex /root/notebooks_earthquakes",
+        "reviewed_at": "2026-11-14T23:15:49.618509+00:00",
+        "notebook_sha256": "72814a31e401c604d2a3f6b43a3a5bd0590deb328f3f769e1065aa97d99a2112",
+        "catalog_sha256": [
+          "87b7475f5cd10cb6d7c8eaf85fbb51549a61dfa31c441b0e13ce6ddacf9ee02d",
+          "87b7475f5cd10cb6d7c8eaf85fbb51549a61dfa31c441b0e13ce6ddacf9ee02d"
+        ],
+        "purpose": "Show that successful decoding and valid geometry do not certify external tile-address provenance.",
+        "finding": "Same released XYZ2/2/1 tile decoded atknownwrong2/1/1 versusrecorded2/2/1. All6properties/validity/populations survive; fourpoints shift-90degrees/-10018.754projectedkm. ChangingassignedX1\u21922 returns0shift whilebytehashandpopulationstayfixed. Independentworldwidthcheckpasses; noaccuracyorcurrentplaceinference."
+      }
+    }
+  ]
+}

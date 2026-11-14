@@ -1,0 +1,48 @@
+{
+  "query": "SELECT * FROM duckdb_databases() WHERE database_name='mvt'",
+  "captured_at": "2026-11-14T23:07:06.282808+00:00",
+  "columns": [
+    "database_name",
+    "database_oid",
+    "path",
+    "comment",
+    "tags",
+    "internal",
+    "type",
+    "readonly",
+    "encrypted",
+    "cipher",
+    "options"
+  ],
+  "rows": [
+    [
+      "mvt",
+      22950,
+      null,
+      "# Read Mapbox Vector Tiles in DuckDB\n\n**Turn vector tiles back into data.** Decode Mapbox Vector Tiles into rows with a DuckDB `GEOMETRY` column and the features' attributes, from PMTiles archives or `{z}/{x}/{y}` tile servers.\n\nCoordinates come back as WGS84 longitude/latitude by default; Web Mercator metres and raw tile pixels are available too. Vector tiles are a lossy, display-oriented format: coordinates snap to a grid of usually 4096 per tile, and features are clipped at tile edges and simplified at low zoom, so read the highest zoom for the most faithful geometry.",
+      {
+        "vgi.agent_test_tasks": "[{\"name\":\"fixture_city_count\",\"prompt\":\"Using the mvt worker, how many features are in the 'cities' layer of the tileset test/fixtures/sample.pmtiles at zoom 3?\"},{\"name\":\"tile_polygons\",\"prompt\":\"How many polygon features does the single vector tile test/fixtures/0-0-0.mvt (tile 0/0/0) hold?\"},{\"name\":\"region_attributes\",\"prompt\":\"List the attribute names of the 'regions' layer in test/fixtures/sample.pmtiles, alphabetically.\"},{\"name\":\"cities_per_region\",\"prompt\":\"In the tileset test/fixtures/sample.pmtiles (at its default zoom), how many features of the 'cities' layer lie inside each polygon of the 'regions' layer? Return one row per region, including regions with none, with columns code (the region's code attribute, VARCHAR) and cities (BIGINT), ordered by code.\"}]",
+        "vgi.author": "Query.Farm",
+        "vgi.copyright": "Copyright 2026 Query Farm LLC - https://query.farm",
+        "vgi.doc_llm": "Decode Mapbox Vector Tiles (MVT, the protobuf tile format behind most web maps) into DuckDB rows. Each feature becomes a row with its layer, tile address (z/x/y), feature id, a `GEOMETRY` in WGS84 longitude/latitude (or Web Mercator, or raw tile pixels) and its attributes as `JSON`; naming one layer also returns each attribute the tileset metadata lists as a typed column. Sources: PMTiles archives over HTTP range requests (or local files when the worker runs under Bun) and `{z}/{x}/{y}` tile-server URL templates. The worker is written in TypeScript so the same code also runs inside a browser Web Worker next to Haybarn WASM (Haybarn's DuckDB build for the browser). Read the tileset metadata first to learn its zoom range, layers and attributes. Geometry is quantised to the tile grid. Tilesets store a feature once per tile it touches: `tile_edges := 'merge'` (the default) joins those pieces back into one row per feature, `'clip'` trims each piece to its own tile, `'raw'` returns tiles as stored. A `WHERE ST_Intersects(geometry, <constant>)` filter also chooses which tiles are read, so a small area of a planet-sized archive costs only a few range requests.",
+        "vgi.doc_md": "# Read Mapbox Vector Tiles in DuckDB\n\n**Turn vector tiles back into data.** Decode Mapbox Vector Tiles into rows with a DuckDB `GEOMETRY` column and the features' attributes, from PMTiles archives or `{z}/{x}/{y}` tile servers.\n\nCoordinates come back as WGS84 longitude/latitude by default; Web Mercator metres and raw tile pixels are available too. Vector tiles are a lossy, display-oriented format: coordinates snap to a grid of usually 4096 per tile, and features are clipped at tile edges and simplified at low zoom, so read the highest zoom for the most faithful geometry.",
+        "vgi.icon_url": "https://query.farm/media-kit/products/vgi/vgi-logo.png",
+        "vgi.keywords": "[\"vgi\",\"duckdb\",\"vector tiles\",\"mvt\",\"mapbox vector tile\",\"pmtiles\",\"xyz tiles\",\"gis\",\"geometry\",\"protobuf\",\"wasm\",\"browser\"]",
+        "vgi.license": "0BSD",
+        "vgi.source_url": "https://github.com/Query-farm/vgi-mvt-typescript",
+        "vgi.subtitle": "Decode PMTiles and XYZ vector tiles into DuckDB rows with GEOMETRY columns, natively or in the browser.",
+        "vgi.support_contact": "https://github.com/Query-farm/vgi-mvt-typescript/issues",
+        "vgi.support_policy_url": "https://github.com/Query-farm/vgi-mvt-typescript#support",
+        "vgi.title": "Vector Tile Reader"
+      },
+      false,
+      "vgi",
+      false,
+      false,
+      null,
+      {
+        "location": "github-auto://Query-farm/vgi-mvt-typescript@v0.1.0"
+      }
+    ]
+  ]
+}

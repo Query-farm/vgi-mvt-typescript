@@ -1,0 +1,16 @@
+{
+  "release": "v0.1.0",
+  "release_commit": "85aded6d7319f72ec4f37138c728fa3302382743",
+  "current_revision": "85aded6d7319f72ec4f37138c728fa3302382743",
+  "source_ci": {
+    "url": "https://github.com/Query-farm/vgi-mvt-typescript/actions/runs/43614805268",
+    "revision": "85aded6d7319f72ec4f37138c728fa3302382743",
+    "conclusion": "success"
+  },
+  "runtime": "Haybarn2.0.0rc11",
+  "launch": "github-auto://Query-farm/vgi-mvt-typescript@v0.1.0",
+  "source_review": "Release tag peels to exactly current public source commit. Actual released native runtime catalog therefore supplies the same revision evidence for release and current snapshots, with no duplicated worker build or current-source substitution. Worker source/root package locks unchanged by notebook update.",
+  "metadata_provenance": "Actual catalog-metadata.json vgi.title/vgi.subtitle.",
+  "scope": "Unconfigured fixed catalog has three functions and no tables/views/COPY formats. Selected edges.pmtiles configuration adds areas and roads tables. Snapshot is the complete union for these documented configurations: five logical named surfaces. Future tilesets have data-dependent layer names/schema, not an invented global static denominator.",
+  "release_download": "Anonymous GitHub API cold attempt HTTP403; existing gh authentication used only in test subprocess to download actual pinned release. Subsequent notebook/catalog starts anonymous from verified cache. Empty-cache anonymous retry recorded separately."
+}

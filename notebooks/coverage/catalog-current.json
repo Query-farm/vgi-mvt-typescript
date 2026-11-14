@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "repository": "Query-farm/vgi-mvt-typescript",
+  "revision": "85aded6d7319f72ec4f37138c728fa3302382743",
+  "release_tag": "v0.1.0",
+  "captured_at": "2026-11-14T23:07:06.273983+00:00",
+  "default_schema": "main",
+  "scope": "all_public_functions_and_tables",
+  "complete": true,
+  "evidence": [
+    {
+      "path": "coverage/functions.json",
+      "sha256": "d84a3e1040eeca385078001f1901f20e782b68bc39707812bc693bc6e90e3e8a",
+      "description": "Actual complete pinned native release catalog, same source revision as public main; full arguments/output columns and explicit selected archive layer tables"
+    },
+    {
+      "path": "coverage/tables.json",
+      "sha256": "b4574b8db4d95134b832ab6447e26d618eed016d2dafaf585135ce5671ad2f2b",
+      "description": "Actual complete pinned native release catalog, same source revision as public main; full arguments/output columns and explicit selected archive layer tables"
+    },
+    {
+      "path": "coverage/views.json",
+      "sha256": "9a7c5dcd952974dd85200ecced26e046bd85d6050e32cc09b87999c06e25f5ba",
+      "description": "Actual complete pinned native release catalog, same source revision as public main; full arguments/output columns and explicit selected archive layer tables"
+    },
+    {
+      "path": "coverage/arguments.json",
+      "sha256": "32a08cd7b2b45683174794fd9e07c8f14b3079df11a2cfed6e176d8cdd078652",
+      "description": "Actual complete pinned native release catalog, same source revision as public main; full arguments/output columns and explicit selected archive layer tables"
+    },
+    {
+      "path": "coverage/catalog-metadata.json",
+      "sha256": "4476403189e4d2cbaea954e2d2967e96678482c9cc18ccc41368e285168eebf2",
+      "description": "Actual complete pinned native release catalog, same source revision as public main; full arguments/output columns and explicit selected archive layer tables"
+    },
+    {
+      "path": "coverage/copy-formats.json",
+      "sha256": "7f0fe7b2908004f9091679a02f3bbc80cfba591ed3f174c6fb035bb476755a7a",
+      "description": "Actual complete pinned native release catalog, same source revision as public main; full arguments/output columns and explicit selected archive layer tables"
+    },
+    {
+      "path": "coverage/selected-functions.json",
+      "sha256": "0cfa158cbf0b3b26d44500548367ad0b7c6f21f77ddd11009e8be4fb454d5022",
+      "description": "Actual complete pinned native release catalog, same source revision as public main; full arguments/output columns and explicit selected archive layer tables"
+    },
+    {
+      "path": "coverage/selected-tables.json",
+      "sha256": "705668a37022cd65d2972e4ec7e5350b630e7f486b6f049d7a41b360d3ad815b",
+      "description": "Actual complete pinned native release catalog, same source revision as public main; full arguments/output columns and explicit selected archive layer tables"
+    },
+    {
+      "path": "coverage/selected-views.json",
+      "sha256": "fe0ab949f135f1205e5df231c0ad1c941f37a2c2f3ef60cac36517370909d3dc",
+      "description": "Actual complete pinned native release catalog, same source revision as public main; full arguments/output columns and explicit selected archive layer tables"
+    },
+    {
+      "path": "coverage/read_mvt-columns.json",
+      "sha256": "394a3f47219b1d961e34a260bfbe1289c0d256fa17752c351935329b15625ace",
+      "description": "Actual complete pinned native release catalog, same source revision as public main; full arguments/output columns and explicit selected archive layer tables"
+    },
+    {
+      "path": "coverage/read_tiles-columns.json",
+      "sha256": "c1d452cbd86ac3cd4cd4f1440e872c0ef66c90af38d7657ae74d78530b914433",
+      "description": "Actual complete pinned native release catalog, same source revision as public main; full arguments/output columns and explicit selected archive layer tables"
+    },
+    {
+      "path": "coverage/tileset_layers-columns.json",
+      "sha256": "b3dabe64ef5d881be119e5968afd470acadcaaacc269df34c2f87c0cbaeb7c7b",
+      "description": "Actual complete pinned native release catalog, same source revision as public main; full arguments/output columns and explicit selected archive layer tables"
+    },
+    {
+      "path": "coverage/areas-columns.json",
+      "sha256": "de83f6ca77a372a2edf788cf6ca6a300d483f68f86a7550f852bd996ec8a9182",
+      "description": "Actual complete pinned native release catalog, same source revision as public main; full arguments/output columns and explicit selected archive layer tables"
+    },
+    {
+      "path": "coverage/roads-columns.json",
+      "sha256": "76f7e1623537e2a8123fe1c46f9731532dc8aff6baa1420abf1dcc148f63eda9",
+      "description": "Actual complete pinned native release catalog, same source revision as public main; full arguments/output columns and explicit selected archive layer tables"
+    },
+    {
+      "path": "coverage/read-probe.json",
+      "sha256": "c3743bbb3b9f7fbc9c2d0404adc417e23cc54914b564145ffa32ae6bd5dcdec6",
+      "description": "Actual complete pinned native release catalog, same source revision as public main; full arguments/output columns and explicit selected archive layer tables"
+    },
+    {
+      "path": "coverage/source-compatibility.json",
+      "sha256": "d3192edc2dec294d65e99d83b87d1ae7e2b8640e22a94412ca8ac60cb20b7fc1",
+      "description": "Actual complete pinned native release catalog, same source revision as public main; full arguments/output columns and explicit selected archive layer tables"
+    }
+  ],
+  "objects": [
+    {
+      "schema": "main",
+      "name": "read_mvt",
+      "kind": "function",
+      "authentication": "none",
+      "access": "read",
+      "signatures": [
+        "read_mvt(coordinates VARCHAR, layer VARCHAR, source VARCHAR, x INTEGER, y INTEGER, z INTEGER) -> TABLE(layer VARCHAR, z INTEGER, x INTEGER, y INTEGER, feature_id UBIGINT, geometry_type VARCHAR, geometry GEOMETRY('EPSG:3857'), properties JSON)"
+      ]
+    },
+    {
+      "schema": "main",
+      "name": "read_tiles",
+      "kind": "function",
+      "authentication": "none",
+      "access": "read",
+      "signatures": [
+        "read_tiles(coordinates VARCHAR, east DOUBLE, layer VARCHAR, max_tiles INTEGER, north DOUBLE, source VARCHAR, south DOUBLE, tile_edges VARCHAR, west DOUBLE, zoom INTEGER) -> TABLE(layer VARCHAR, z INTEGER, x INTEGER, y INTEGER, feature_id UBIGINT, geometry_type VARCHAR, geometry GEOMETRY('EPSG:3857'), properties JSON)"
+      ]
+    },
+    {
+      "schema": "main",
+      "name": "tileset_layers",
+      "kind": "function",
+      "authentication": "none",
+      "access": "read",
+      "signatures": [
+        "tileset_layers(source VARCHAR) -> TABLE(layer VARCHAR, field VARCHAR, type VARCHAR, minzoom INTEGER, maxzoom INTEGER, description VARCHAR)"
+      ]
+    },
+    {
+      "schema": "main",
+      "name": "areas",
+      "kind": "table",
+      "authentication": "none",
+      "access": "read",
+      "signatures": [
+        "TABLE(layer VARCHAR, z INTEGER, x INTEGER, y INTEGER, feature_id UBIGINT, geometry_type VARCHAR, geometry GEOMETRY('EPSG:3857'), properties JSON, name VARCHAR)"
+      ]
+    },
+    {
+      "schema": "main",
+      "name": "roads",
+      "kind": "table",
+      "authentication": "none",
+      "access": "read",
+      "signatures": [
+        "TABLE(layer VARCHAR, z INTEGER, x INTEGER, y INTEGER, feature_id UBIGINT, geometry_type VARCHAR, geometry GEOMETRY('EPSG:3857'), properties JSON, name VARCHAR, kind VARCHAR)"
+      ]
+    }
+  ],
+  "launch": "github-auto://Query-farm/vgi-mvt-typescript@v0.1.0",
+  "runtime": "Haybarn2.0.0rc11",
+  "configuration": {
+    "fixed_named_surfaces": 3,
+    "selected_layer_tables": 2,
+    "selected_catalog": "fixture_layers with fixtures/edges.pmtiles, zoom3, coordinates web_mercator, tile_edges raw, max_tiles64",
+    "scope_limitation": "Complete for explicit configuration only; arbitrary archives may add other table names/schema."
+  },
+  "review_notes": "Unconfigured fixed catalog has three functions and no tables/views/COPY formats. Selected edges.pmtiles configuration adds areas and roads tables. Snapshot is the complete union for these documented configurations: five logical named surfaces. Future tilesets have data-dependent layer names/schema, not an invented global static denominator."
+}

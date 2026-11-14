@@ -1,0 +1,397 @@
+{
+  "schema_version": 1,
+  "status": "met",
+  "meets_target": true,
+  "catalogs": {
+    "released": {
+      "catalog_status": "verified",
+      "revision": "85aded6d7319f72ec4f37138c728fa3302382743",
+      "catalog_sha256": "87b7475f5cd10cb6d7c8eaf85fbb51549a61dfa31c441b0e13ce6ddacf9ee02d",
+      "collection_reconciled": true,
+      "denominator": 5,
+      "observed_objects": 5,
+      "required": 5,
+      "verified_count": 5,
+      "candidate_count": 0,
+      "fraction": 1.0,
+      "meets_target": true,
+      "exact_runtime_count": 5,
+      "runtime_revisions": [
+        "85aded6d7319f72ec4f37138c728fa3302382743"
+      ],
+      "covered": [
+        {
+          "schema": [
+            "main"
+          ],
+          "name": "areas"
+        },
+        {
+          "schema": [
+            "main"
+          ],
+          "name": "read_mvt"
+        },
+        {
+          "schema": [
+            "main"
+          ],
+          "name": "read_tiles"
+        },
+        {
+          "schema": [
+            "main"
+          ],
+          "name": "roads"
+        },
+        {
+          "schema": [
+            "main"
+          ],
+          "name": "tileset_layers"
+        }
+      ],
+      "uncovered": [],
+      "objects": [
+        {
+          "schema": [
+            "main"
+          ],
+          "name": "areas",
+          "kinds": [
+            "table"
+          ],
+          "signatures": [
+            "TABLE(layer VARCHAR, z INTEGER, x INTEGER, y INTEGER, feature_id UBIGINT, geometry_type VARCHAR, geometry GEOMETRY('EPSG:3857'), properties JSON, name VARCHAR)"
+          ],
+          "access": [
+            "read"
+          ],
+          "authentication": [
+            "none"
+          ]
+        },
+        {
+          "schema": [
+            "main"
+          ],
+          "name": "read_mvt",
+          "kinds": [
+            "function"
+          ],
+          "signatures": [
+            "read_mvt(coordinates VARCHAR, layer VARCHAR, source VARCHAR, x INTEGER, y INTEGER, z INTEGER) -> TABLE(layer VARCHAR, z INTEGER, x INTEGER, y INTEGER, feature_id UBIGINT, geometry_type VARCHAR, geometry GEOMETRY('EPSG:3857'), properties JSON)"
+          ],
+          "access": [
+            "read"
+          ],
+          "authentication": [
+            "none"
+          ]
+        },
+        {
+          "schema": [
+            "main"
+          ],
+          "name": "read_tiles",
+          "kinds": [
+            "function"
+          ],
+          "signatures": [
+            "read_tiles(coordinates VARCHAR, east DOUBLE, layer VARCHAR, max_tiles INTEGER, north DOUBLE, source VARCHAR, south DOUBLE, tile_edges VARCHAR, west DOUBLE, zoom INTEGER) -> TABLE(layer VARCHAR, z INTEGER, x INTEGER, y INTEGER, feature_id UBIGINT, geometry_type VARCHAR, geometry GEOMETRY('EPSG:3857'), properties JSON)"
+          ],
+          "access": [
+            "read"
+          ],
+          "authentication": [
+            "none"
+          ]
+        },
+        {
+          "schema": [
+            "main"
+          ],
+          "name": "roads",
+          "kinds": [
+            "table"
+          ],
+          "signatures": [
+            "TABLE(layer VARCHAR, z INTEGER, x INTEGER, y INTEGER, feature_id UBIGINT, geometry_type VARCHAR, geometry GEOMETRY('EPSG:3857'), properties JSON, name VARCHAR, kind VARCHAR)"
+          ],
+          "access": [
+            "read"
+          ],
+          "authentication": [
+            "none"
+          ]
+        },
+        {
+          "schema": [
+            "main"
+          ],
+          "name": "tileset_layers",
+          "kinds": [
+            "function"
+          ],
+          "signatures": [
+            "tileset_layers(source VARCHAR) -> TABLE(layer VARCHAR, field VARCHAR, type VARCHAR, minzoom INTEGER, maxzoom INTEGER, description VARCHAR)"
+          ],
+          "access": [
+            "read"
+          ],
+          "authentication": [
+            "none"
+          ]
+        }
+      ],
+      "issues": []
+    },
+    "current": {
+      "catalog_status": "verified",
+      "revision": "85aded6d7319f72ec4f37138c728fa3302382743",
+      "catalog_sha256": "87b7475f5cd10cb6d7c8eaf85fbb51549a61dfa31c441b0e13ce6ddacf9ee02d",
+      "collection_reconciled": true,
+      "denominator": 5,
+      "observed_objects": 5,
+      "required": 5,
+      "verified_count": 5,
+      "candidate_count": 0,
+      "fraction": 1.0,
+      "meets_target": true,
+      "exact_runtime_count": 5,
+      "runtime_revisions": [
+        "85aded6d7319f72ec4f37138c728fa3302382743"
+      ],
+      "covered": [
+        {
+          "schema": [
+            "main"
+          ],
+          "name": "areas"
+        },
+        {
+          "schema": [
+            "main"
+          ],
+          "name": "read_mvt"
+        },
+        {
+          "schema": [
+            "main"
+          ],
+          "name": "read_tiles"
+        },
+        {
+          "schema": [
+            "main"
+          ],
+          "name": "roads"
+        },
+        {
+          "schema": [
+            "main"
+          ],
+          "name": "tileset_layers"
+        }
+      ],
+      "uncovered": [],
+      "objects": [
+        {
+          "schema": [
+            "main"
+          ],
+          "name": "areas",
+          "kinds": [
+            "table"
+          ],
+          "signatures": [
+            "TABLE(layer VARCHAR, z INTEGER, x INTEGER, y INTEGER, feature_id UBIGINT, geometry_type VARCHAR, geometry GEOMETRY('EPSG:3857'), properties JSON, name VARCHAR)"
+          ],
+          "access": [
+            "read"
+          ],
+          "authentication": [
+            "none"
+          ]
+        },
+        {
+          "schema": [
+            "main"
+          ],
+          "name": "read_mvt",
+          "kinds": [
+            "function"
+          ],
+          "signatures": [
+            "read_mvt(coordinates VARCHAR, layer VARCHAR, source VARCHAR, x INTEGER, y INTEGER, z INTEGER) -> TABLE(layer VARCHAR, z INTEGER, x INTEGER, y INTEGER, feature_id UBIGINT, geometry_type VARCHAR, geometry GEOMETRY('EPSG:3857'), properties JSON)"
+          ],
+          "access": [
+            "read"
+          ],
+          "authentication": [
+            "none"
+          ]
+        },
+        {
+          "schema": [
+            "main"
+          ],
+          "name": "read_tiles",
+          "kinds": [
+            "function"
+          ],
+          "signatures": [
+            "read_tiles(coordinates VARCHAR, east DOUBLE, layer VARCHAR, max_tiles INTEGER, north DOUBLE, source VARCHAR, south DOUBLE, tile_edges VARCHAR, west DOUBLE, zoom INTEGER) -> TABLE(layer VARCHAR, z INTEGER, x INTEGER, y INTEGER, feature_id UBIGINT, geometry_type VARCHAR, geometry GEOMETRY('EPSG:3857'), properties JSON)"
+          ],
+          "access": [
+            "read"
+          ],
+          "authentication": [
+            "none"
+          ]
+        },
+        {
+          "schema": [
+            "main"
+          ],
+          "name": "roads",
+          "kinds": [
+            "table"
+          ],
+          "signatures": [
+            "TABLE(layer VARCHAR, z INTEGER, x INTEGER, y INTEGER, feature_id UBIGINT, geometry_type VARCHAR, geometry GEOMETRY('EPSG:3857'), properties JSON, name VARCHAR, kind VARCHAR)"
+          ],
+          "access": [
+            "read"
+          ],
+          "authentication": [
+            "none"
+          ]
+        },
+        {
+          "schema": [
+            "main"
+          ],
+          "name": "tileset_layers",
+          "kinds": [
+            "function"
+          ],
+          "signatures": [
+            "tileset_layers(source VARCHAR) -> TABLE(layer VARCHAR, field VARCHAR, type VARCHAR, minzoom INTEGER, maxzoom INTEGER, description VARCHAR)"
+          ],
+          "access": [
+            "read"
+          ],
+          "authentication": [
+            "none"
+          ]
+        }
+      ],
+      "issues": []
+    }
+  },
+  "interface_drift": {
+    "known": true,
+    "current_only": [],
+    "released_only": [],
+    "changed": []
+  },
+  "notebooks": {
+    "01_measure_tile_buffer_overlap.ipynb": {
+      "verified": true,
+      "issues": []
+    },
+    "02_valid_geometry_wrong_tile_address.ipynb": {
+      "verified": true,
+      "issues": []
+    }
+  },
+  "examples": [
+    {
+      "status": "verified",
+      "issues": [],
+      "verified_catalogs": [
+        "released",
+        "current"
+      ],
+      "object": {
+        "schema": [
+          "main"
+        ],
+        "name": "tileset_layers"
+      },
+      "notebook": "01_measure_tile_buffer_overlap.ipynb",
+      "runtime_revision": "85aded6d7319f72ec4f37138c728fa3302382743",
+      "runtime_catalog_sha256": "87b7475f5cd10cb6d7c8eaf85fbb51549a61dfa31c441b0e13ce6ddacf9ee02d"
+    },
+    {
+      "status": "verified",
+      "issues": [],
+      "verified_catalogs": [
+        "released",
+        "current"
+      ],
+      "object": {
+        "schema": [
+          "main"
+        ],
+        "name": "read_tiles"
+      },
+      "notebook": "01_measure_tile_buffer_overlap.ipynb",
+      "runtime_revision": "85aded6d7319f72ec4f37138c728fa3302382743",
+      "runtime_catalog_sha256": "87b7475f5cd10cb6d7c8eaf85fbb51549a61dfa31c441b0e13ce6ddacf9ee02d"
+    },
+    {
+      "status": "verified",
+      "issues": [],
+      "verified_catalogs": [
+        "released",
+        "current"
+      ],
+      "object": {
+        "schema": [
+          "main"
+        ],
+        "name": "areas"
+      },
+      "notebook": "01_measure_tile_buffer_overlap.ipynb",
+      "runtime_revision": "85aded6d7319f72ec4f37138c728fa3302382743",
+      "runtime_catalog_sha256": "87b7475f5cd10cb6d7c8eaf85fbb51549a61dfa31c441b0e13ce6ddacf9ee02d"
+    },
+    {
+      "status": "verified",
+      "issues": [],
+      "verified_catalogs": [
+        "released",
+        "current"
+      ],
+      "object": {
+        "schema": [
+          "main"
+        ],
+        "name": "roads"
+      },
+      "notebook": "01_measure_tile_buffer_overlap.ipynb",
+      "runtime_revision": "85aded6d7319f72ec4f37138c728fa3302382743",
+      "runtime_catalog_sha256": "87b7475f5cd10cb6d7c8eaf85fbb51549a61dfa31c441b0e13ce6ddacf9ee02d"
+    },
+    {
+      "status": "verified",
+      "issues": [],
+      "verified_catalogs": [
+        "released",
+        "current"
+      ],
+      "object": {
+        "schema": [
+          "main"
+        ],
+        "name": "read_mvt"
+      },
+      "notebook": "02_valid_geometry_wrong_tile_address.ipynb",
+      "runtime_revision": "85aded6d7319f72ec4f37138c728fa3302382743",
+      "runtime_catalog_sha256": "87b7475f5cd10cb6d7c8eaf85fbb51549a61dfa31c441b0e13ce6ddacf9ee02d"
+    }
+  ],
+  "issues": []
+}
