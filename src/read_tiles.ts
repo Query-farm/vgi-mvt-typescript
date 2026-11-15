@@ -6,7 +6,15 @@
 import type { VgiSchema } from "@query-farm/vgi";
 import { batchFromColumns, defineTableFunction, float64, int32, schema, utf8 } from "@query-farm/vgi/worker-cf";
 import { TILE_EDGE_CHOICES, type TileEdges } from "./edges.ts";
-import { CITY_REGIONS, example, executable, LAYER_PROFILE, TILE_ATTRIBUTE_FILL } from "./examples.ts";
+import {
+  CITY_REGIONS,
+  example,
+  executable,
+  LAYER_PROFILE,
+  SAMPLE,
+  TILE_0_0_0,
+  TILE_ATTRIBUTE_FILL,
+} from "./examples.ts";
 import { assemblerFor } from "./merge.ts";
 import { column, FIRENZE_PMTILES, objectTags } from "./meta.ts";
 import {
@@ -223,7 +231,7 @@ export const readTiles = defineTableFunction<ReadTilesArgs, ReadTilesState>({
     "vgi.executable_examples": JSON.stringify([
       {
         description: "Count the fixture tileset's features per layer at zoom 2",
-        sql: "SELECT layer, count(*) AS features FROM mvt.main.read_tiles('test/fixtures/sample.pmtiles', zoom := 2) GROUP BY layer ORDER BY layer",
+        sql: `SELECT layer, count(*) AS features FROM mvt.main.read_tiles('${SAMPLE}', zoom := 2) GROUP BY layer ORDER BY layer`,
         expected_result: [
           ["cities", 4],
           ["regions", 2],
@@ -234,7 +242,7 @@ export const readTiles = defineTableFunction<ReadTilesArgs, ReadTilesState>({
   },
   examples: [
     {
-      sql: "SELECT layer, count(*) AS features FROM mvt.main.read_tiles('test/fixtures/sample.pmtiles', zoom := 2) GROUP BY layer ORDER BY layer",
+      sql: `SELECT layer, count(*) AS features FROM mvt.main.read_tiles('${SAMPLE}', zoom := 2) GROUP BY layer ORDER BY layer`,
       description: "Count the fixture tileset's features per layer at zoom 2",
     },
     {
@@ -328,7 +336,7 @@ export const readMvt = defineTableFunction<ReadMvtArgs, { done: boolean }>({
     "vgi.executable_examples": JSON.stringify([
       {
         description: "Features per geometry type in the fixture tile",
-        sql: "SELECT geometry_type, count(*) AS n FROM mvt.main.read_mvt('test/fixtures/0-0-0.mvt', 0, 0, 0) GROUP BY geometry_type ORDER BY geometry_type",
+        sql: `SELECT geometry_type, count(*) AS n FROM mvt.main.read_mvt('${TILE_0_0_0}', 0, 0, 0) GROUP BY geometry_type ORDER BY geometry_type`,
         expected_result: [
           ["POINT", 4],
           ["POLYGON", 2],
@@ -338,7 +346,7 @@ export const readMvt = defineTableFunction<ReadMvtArgs, { done: boolean }>({
   },
   examples: [
     {
-      sql: "SELECT geometry_type, count(*) AS n FROM mvt.main.read_mvt('test/fixtures/0-0-0.mvt', 0, 0, 0) GROUP BY geometry_type ORDER BY geometry_type",
+      sql: `SELECT geometry_type, count(*) AS n FROM mvt.main.read_mvt('${TILE_0_0_0}', 0, 0, 0) GROUP BY geometry_type ORDER BY geometry_type`,
       description: "Features per geometry type in the fixture tile",
     },
     example(TILE_ATTRIBUTE_FILL),
@@ -415,7 +423,7 @@ export const tilesetLayers = defineTableFunction<{ source: string }, { done: boo
     "vgi.executable_examples": JSON.stringify([
       {
         description: "Attributes of the fixture tileset's cities layer",
-        sql: "SELECT field, type FROM mvt.main.tileset_layers('test/fixtures/sample.pmtiles') WHERE layer = 'cities' ORDER BY field",
+        sql: `SELECT field, type FROM mvt.main.tileset_layers('${SAMPLE}') WHERE layer = 'cities' ORDER BY field`,
         expected_result: [
           ["capital", "Boolean"],
           ["name", "String"],
@@ -427,7 +435,7 @@ export const tilesetLayers = defineTableFunction<{ source: string }, { done: boo
   },
   examples: [
     {
-      sql: "SELECT field, type FROM mvt.main.tileset_layers('test/fixtures/sample.pmtiles') WHERE layer = 'cities' ORDER BY field",
+      sql: `SELECT field, type FROM mvt.main.tileset_layers('${SAMPLE}') WHERE layer = 'cities' ORDER BY field`,
       description: "Attributes of the fixture tileset's cities layer",
     },
     example(LAYER_PROFILE),

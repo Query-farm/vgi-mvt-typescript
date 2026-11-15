@@ -6,7 +6,14 @@
  * executable examples too.
  */
 
-const SAMPLE = "test/fixtures/sample.pmtiles";
+/**
+ * Example fixtures, read from a release tag so the examples work outside this repo
+ * (and from Haybarn WASM in a browser: raw.githubusercontent.com serves CORS and
+ * range requests). The tag must contain these files byte-for-byte as test/fixtures.
+ */
+export const FIXTURES = "https://raw.githubusercontent.com/Query-farm/vgi-mvt-typescript/v0.1.0/test/fixtures";
+export const SAMPLE = `${FIXTURES}/sample.pmtiles`;
+export const TILE_0_0_0 = `${FIXTURES}/0-0-0.mvt`;
 
 /** tileset_layers + read_tiles: what the metadata promises next to what the tiles hold. */
 export const LAYER_PROFILE = {
@@ -35,7 +42,7 @@ export const TILE_ATTRIBUTE_FILL = {
   sql:
     "SELECT t.layer, t.field, count(f.layer) AS features, count(f.properties->>t.field) AS with_value " +
     `FROM mvt.main.tileset_layers('${SAMPLE}') AS t ` +
-    "LEFT JOIN mvt.main.read_mvt('test/fixtures/0-0-0.mvt', 0, 0, 0) AS f ON f.layer = t.layer " +
+    `LEFT JOIN mvt.main.read_mvt('${TILE_0_0_0}', 0, 0, 0) AS f ON f.layer = t.layer ` +
     "GROUP BY t.layer, t.field ORDER BY t.layer, t.field",
 };
 

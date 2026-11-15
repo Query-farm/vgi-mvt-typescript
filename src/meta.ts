@@ -95,7 +95,20 @@ export const CATALOG_DOC_MD =
   "Coordinates come back as WGS84 longitude/latitude by default; Web Mercator metres and raw tile " +
   "pixels are available too. Vector tiles are a lossy, display-oriented format: coordinates snap " +
   "to a grid of usually 4096 per tile, and features are clipped at tile edges and simplified at low " +
-  "zoom, so read the highest zoom for the most faithful geometry.";
+  "zoom, so read the highest zoom for the most faithful geometry.\n\n" +
+  "Formats: the [Mapbox Vector Tile specification](https://github.com/mapbox/vector-tile-spec) " +
+  "and the [PMTiles v3 archive format](https://github.com/protomaps/PMTiles/blob/main/spec/v3/spec.md); " +
+  "layer metadata follows [TileJSON](https://github.com/mapbox/tilejson-spec) `vector_layers`.";
+
+/** The catalog's one-line directory blurb: plain text, distinct from the long docs. */
+export const CATALOG_COMMENT =
+  "Decode Mapbox Vector Tiles from PMTiles archives and XYZ tile servers into DuckDB rows with " +
+  "GEOMETRY columns, natively or in the browser next to Haybarn WASM.";
+
+/** The schema's short comment, distinct from its vgi.doc_llm / vgi.doc_md. */
+export const SCHEMA_COMMENT =
+  "Vector tile readers: whole tilesets one zoom at a time, single tiles, and the layer catalogue " +
+  "that describes a tileset, each feature returned as a row with a GEOMETRY and its attributes.";
 
 export const SCHEMA_DOC_LLM =
   "Vector tile readers. Every feature-reading function returns the same leading columns: layer, z, " +
